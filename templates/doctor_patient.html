@@ -1,0 +1,112 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Prescribe - Health Kiosk</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen">
+  <nav class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-4 shadow-lg">
+    <div class="max-w-6xl mx-auto flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <i class="fas fa-file-medical text-2xl"></i>
+        <h1 class="text-xl font-bold">Write Prescription</h1>
+      </div>
+      <a href="{{ url_for('doctor_dashboard') }}" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition">
+        <i class="fas fa-arrow-left mr-1"></i>Back to Dashboard
+      </a>
+    </div>
+  </nav>
+
+  <div class="max-w-4xl mx-auto p-6">
+    <div class="bg-white p-8 rounded-2xl shadow-xl border border-blue-100">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-gray-800 flex items-center">
+          <i class="fas fa-user-injured text-blue-500 mr-3"></i>
+          Patient: {{ pdata.name }}
+        </h2>
+        <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+          ID: {{ pdata.id[:12] }}...
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-blue-50 p-4 rounded-lg">
+          <h3 class="font-semibold text-blue-800 mb-3 flex items-center">
+            <i class="fas fa-info-circle mr-2"></i>Personal Details
+          </h3>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between">
+              <span class="text-gray-600">City:</span>
+              <span class="font-medium">{{ pdata.city }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Age:</span>
+              <span class="font-medium">{{ pdata.age }} years</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Weight:</span>
+              <span class="font-medium">{{ pdata.weight }} kg</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Blood Group:</span>
+              <span class="font-medium">{{ pdata.blood_group }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-green-50 p-4 rounded-lg">
+          <h3 class="font-semibold text-green-800 mb-3 flex items-center">
+            <i class="fas fa-heartbeat mr-2"></i>Vital Signs
+          </h3>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between">
+              <span class="text-gray-600">Blood Pressure:</span>
+              <span class="font-medium">{{ pdata.bp }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Sugar Level:</span>
+              <span class="font-medium">{{ pdata.sugar }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Oxygen:</span>
+              <span class="font-medium">{{ pdata.oxygen }}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <h3 class="font-semibold text-gray-800 mb-2 flex items-center">
+          <i class="fas fa-stethoscope text-orange-500 mr-2"></i>Symptoms Description
+        </h3>
+        <div class="bg-orange-50 p-4 rounded-lg border-l-4 border-orange-400">
+          <p class="text-gray-700">{{ pdata.symptoms }}</p>
+        </div>
+      </div>
+
+      <form method="POST">
+        <div class="mb-4">
+          <label class="block text-lg font-semibold text-gray-700 mb-3 flex items-center">
+            <i class="fas fa-prescription text-purple-500 mr-2"></i>Prescription / Medical Advice
+          </label>
+          <textarea name="prescription" rows="8" 
+                    placeholder="Enter detailed prescription, medication instructions, dosage, follow-up advice, etc..."
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition text-lg">{{ pdata.prescription }}</textarea>
+        </div>
+        
+        <div class="flex space-x-4">
+          <button type="submit" class="bg-gradient-to-r from-green-500 to-teal-500 text-white px-6 py-3 rounded-lg font-bold text-lg hover:from-green-600 hover:to-teal-600 transition duration-300 shadow-lg">
+            <i class="fas fa-save mr-2"></i>Save Prescription
+          </button>
+          <a href="{{ url_for('doctor_dashboard') }}" class="bg-gray-500 text-white px-6 py-3 rounded-lg font-bold text-lg hover:bg-gray-600 transition">
+            <i class="fas fa-times mr-2"></i>Cancel
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
