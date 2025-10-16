@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Your Prescription - Health Kiosk</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    @media print {
+      .no-print { display: none; }
+      body { background: white; }
+      .print-container { box-shadow: none; border: 2px solid #000; margin: 0; }
+      .prescription-content { white-space: pre-wrap; font-family: Arial, sans-serif; }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-teal-50 to-blue-50 min-h-screen flex items-center justify-center p-4">
+  <div class="w-full max-w-3xl bg-white p-8 rounded-3xl shadow-2xl border border-teal-200 print-container">
+    <div class="text-center mb-8 no-print">
+      <i class="fas fa-file-medical text-5xl text-teal-600 mb-4"></i>
+      <h1 class="text-3xl font-bold text-teal-800">Medical Prescription</h1>
+      <p class="text-gray-600 mt-2">For {{ pdata.name }}</p>
+    </div>
+
+    <div class="border-2 border-teal-300 rounded-lg p-6 mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div>
+          <h3 class="font-semibold text-lg text-teal-700 mb-3 border-b pb-2">Patient Information</h3>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between">
+              <span class="text-gray-600 font-medium">Full Name:</span>
+              <span class="text-gray-800">{{ pdata.name }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600 font-medium">Age:</span>
+              <span class="text-gray-800">{{ pdata.age }} years</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600 font-medium">City:</span>
+              <span class="text-gray-800">{{ pdata.city }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600 font-medium">Blood Group:</span>
+              <span class="text-gray-800">{{ pdata.blood_group }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-lg text-teal-700 mb-3 border-b pb-2">Vital Signs</h3>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between">
+              <span class="text-gray-600 font-medium">Blood Pressure:</span>
+              <span class="text-gray-800">{{ pdata.bp }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600 font-medium">Sugar Level:</span>
+              <span class="text-gray-800">{{ pdata.sugar }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600 font-medium">Oxygen Level:</span>
+              <span class="text-gray-800">{{ pdata.oxygen }}%</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600 font-medium">Weight:</span>
+              <span class="text-gray-800">{{ pdata.weight }} kg</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <h3 class="font-semibold text-lg text-teal-700 mb-2">Reported Symptoms</h3>
+        <div class="bg-gray-50 p-4 rounded-lg border-l-4 border-teal-400">
+          <p class="text-gray-700">{{ pdata.symptoms }}</p>
+        </div>
+      </div>
+
+      <div class="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-400">
+        <h3 class="font-semibold text-lg text-yellow-700 mb-3">Doctor's Prescription</h3>
+        {% if pdata.prescription %}
+          <div class="prescription-content bg-white p-4 rounded border">
+            <pre class="whitespace-pre-wrap font-sans text-gray-800">{{ pdata.prescription }}</pre>
+          </div>
+        {% else %}
+          <div class="text-center py-4">
+            <i class="fas fa-clock text-2xl text-yellow-500 mb-2"></i>
+            <p class="text-yellow-600 font-medium">Prescription pending. Please check back later.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="flex flex-wrap gap-3 no-print">
+      <button onclick="window.print()" class="bg-teal-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-teal-700 transition">
+        <i class="fas fa-print mr-2"></i>Print Prescription
+      </button>
+      
+      <button onclick="downloadPrescription()" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+        <i class="fas fa-download mr-2"></i>Download as PDF
+      </button>
+      
+      <a href="{{ url_for('patient') }}" class="bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700 transition">
+        <i class="fas fa-arrow-left mr-2"></i>Back to Form
+      </a>
+    </div>
+  </div>
+
+  <script>
+    function downloadPrescription() {
+      // Create a printable version of the prescription
+      const printContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Prescription - {{ pdata.name }}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 20px; }
+            .patient-info, .vital-signs { margin-bottom: 20px; }
+            .section-title { font-weight: bold; border-bottom: 1px solid #ccc; margin-bottom: 10px; }
+            .prescription { background: #f9f9f9; padding: 15px; border-left: 4px solid #000; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>MEDICAL PRESCRIPTION</h1>
+            <h2>For: {{ pdata.name }}</h2>
+            <p>Date: ${new Date().toLocaleDateString()}</p>
+          </div>
+          
+          <div class="patient-info">
+            <div class="section-title">PATIENT INFORMATION</div>
+            <p><strong>Name:</strong> {{ pdata.name }}</p>
+            <p><strong>Age:</strong> {{ pdata.age }} years</p>
+            <p><strong>City:</strong> {{ pdata.city }}</p>
+            <p><strong>Blood Group:</strong> {{ pdata.blood_group }}</p>
+          </div>
+          
+          <div class="vital-signs">
+            <div class="section-title">VITAL SIGNS</div>
+            <p><strong>BP:</strong> {{ pdata.bp }}</p>
+            <p><strong>Sugar:</strong> {{ pdata.sugar }}</p>
+            <p><strong>Oxygen:</strong> {{ pdata.oxygen }}%</p>
+            <p><strong>Weight:</strong> {{ pdata.weight }} kg</p>
+          </div>
+          
+          <div class="symptoms">
+            <div class="section-title">SYMPTOMS</div>
+            <p>{{ pdata.symptoms }}</p>
+          </div>
+          
+          <div class="prescription">
+            <div class="section-title">DOCTOR'S PRESCRIPTION</div>
+            <pre>${"{{ pdata.prescription }}" || "No prescription provided yet."}</pre>
+          </div>
+        </body>
+        </html>
+      `;
+      
+      // Open print dialog for PDF download
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  </script>
+</body>
+</html>
