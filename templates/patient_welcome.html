@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Health Kiosk - Patient</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .circular-logo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-green-50 to-teal-50 min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white p-8 rounded-3xl shadow-2xl border border-green-200 text-center">
+        <!-- Circular Logo -->
+        <div class="flex justify-center mb-6">
+            <div class="bg-green-100 p-2 rounded-full">
+                <img src="{{ url_for('static', filename='logo.jpg') }}" 
+                     alt="Health Kiosk Logo" 
+                     class="circular-logo">
+            </div>
+        </div>
+        
+        <h1 class="text-3xl font-bold text-green-800 mb-2">HEALTH KIOSK</h1>
+        <p class="text-gray-600 mb-2">Welcome to Health Kiosk</p>
+        <p class="text-gray-500 text-sm mb-8">Complete your health form and get instant prescription</p>
+        
+        <div class="space-y-4">
+            <a href="/patient" class="block bg-green-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-green-700 transition duration-300">
+                <i class="fas fa-plus-circle mr-2"></i>Start Health Form
+            </a>
+            
+            <a href="/patient/history" class="block bg-blue-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-700 transition duration-300">
+                <i class="fas fa-history mr-2"></i>View My History
+            </a>
+
+            <a href="/patient/search" class="block bg-purple-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-purple-700 transition duration-300">
+                <i class="fas fa-search mr-2"></i>Search Records
+            </a>
+        </div>
+
+        <p class="text-gray-400 text-xs mt-6">Patient Health Portal</p>
+    </div>
+</body>
+</html>

@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿
+<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8" />
@@ -29,7 +30,7 @@
         </label>
         <input type="text" name="name" required 
                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-               placeholder="Enter your full name">
+               placeholder="Enter your username">
       </div>
 
       <div>
@@ -48,15 +49,16 @@
 
     <div class="mt-6 text-center">
       <p class="text-gray-600">New doctor? 
-        <a href="{{ url_for('doctor_register') }}" class="text-blue-600 hover:text-blue-800 font-medium">
+        <a href="/doctor/register" class="text-green-600 hover:text-green-800 font-medium">
           <i class="fas fa-user-plus mr-1"></i>Register here
         </a>
       </p>
     </div>
 
     <div class="mt-6 p-3 bg-blue-50 rounded-lg text-center">
-      <a href="{{ url_for('patient') }}" class="text-blue-600 hover:text-blue-800 text-sm">
-        <i class="fas fa-arrow-left mr-1"></i>Back to Patient Form
+      <p class="text-sm text-gray-600">Demo Login: <span class="font-mono">drjohn / password123</span></p>
+      <a href="/doctor/welcome" class="text-blue-600 hover:text-blue-800 text-sm">
+        <i class="fas fa-arrow-left mr-1"></i>Back to Doctor Portal
       </a>
     </div>
   </div>

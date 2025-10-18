@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Search Patients - Health Kiosk</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <nav class="bg-blue-600 text-white px-6 py-4">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-search text-2xl"></i>
+                <h1 class="text-xl font-bold">Search Patients</h1>
+            </div>
+            <div class="flex space-x-2">
+                <a href="/doctor/dashboard" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition">
+                    <i class="fas fa-arrow-left mr-1"></i>Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-6xl mx-auto p-6">
+        <!-- Search Form -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Search Patients by ID or Name</h2>
+            <form method="POST" class="flex gap-4">
+                <div class="flex-1">
+                    <input type="text" name="patient_id" value="{{ search_query }}" 
+                           placeholder="Enter Patient ID or Name..." 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+                    <i class="fas fa-search mr-2"></i>Search
+                </button>
+            </form>
+        </div>
+
+        <!-- Search Results -->
+        {% if search_query %}
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">
+                Search Results for "{{ search_query }}"
+                <span class="text-sm text-gray-500">({{ patients|length }} found)</span>
+            </h3>
+
+            {% if patients %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for pid, pdata in patients.items() %}
+                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">{{ pdata.name }}</h4>
+                            <p class="text-sm text-gray-600 font-mono">{{ pid }}</p>
+                        </div>
+                        <span class="{% if pdata.status == 'prescribed' %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %} px-2 py-1 rounded-full text-xs">
+                            {{ pdata.status }}
+                        </span>
+                    </div>
+                    
+                    <div class="space-y-1 text-sm text-gray-600 mb-3">
+                        <p><i class="fas fa-city mr-2"></i>{{ pdata.city }}</p>
+                        <p><i class="fas fa-calendar mr-2"></i>Age: {{ pdata.age }}</p>
+                        <p><i class="fas fa-heartbeat mr-2"></i>BP: {{ pdata.bp }}</p>
+                    </div>
+
+                    <div class="flex space-x-2">
+                        <a href="/doctor/patient/{{ pid }}" class="flex-1 bg-blue-600 text-white text-center py-2 rounded text-sm hover:bg-blue-700 transition">
+                            <i class="fas fa-edit mr-1"></i>Prescribe
+                        </a>
+                        <form method="POST" action="/doctor/delete/{{ pid }}" class="flex-1" onsubmit="return confirm('Delete this patient record?')">
+                            <button type="submit" class="w-full bg-red-600 text-white py-2 rounded text-sm hover:bg-red-700 transition">
+                                <i class="fas fa-trash mr-1"></i>Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <i class="fas fa-search text-4xl text-gray-300 mb-4"></i>
+                <h4 class="text-lg font-semibold text-gray-600">No patients found</h4>
+                <p class="text-gray-500">Try a different search term</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
