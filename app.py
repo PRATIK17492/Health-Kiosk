@@ -269,9 +269,13 @@ def handle_connect():
 def handle_disconnect():
     print('Client disconnected')
 
+# PRODUCTION READY - For Render/Railway
 if __name__ == '__main__':
     print("🚀 Health Kiosk Server Starting...")
     print("📍 Patient Portal: http://127.0.0.1:5000/patient/welcome")
     print("📍 Doctor Portal:  http://127.0.0.1:5000/doctor/welcome")
     print("🔑 Doctor Login: drjohn / password123")
-    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
+    
+    # For production (Render/Railway)
+    port = int(os.environ.get("PORT", 5000))
+    socketio.run(app, host="0.0.0.0", port=port, debug=False)
