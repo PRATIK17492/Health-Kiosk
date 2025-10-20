@@ -2,48 +2,14 @@ from flask import Flask, render_template, request, redirect, url_for, session
 from flask_socketio import SocketIO, emit
 import os, json
 from datetime import datetime
+from database import init_db, load_doctors, save_doctor, load_patients, save_patient, delete_patient, delete_doctor
 
 app = Flask(__name__)
 app.secret_key = "healthkiosk_secret_key_2024"
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-# Data storage
-PATIENTS_FILE = "patients_data.json"
-DOCTORS_FILE = "doctors_data.json"
-
-def load_patients():
-    try:
-        if os.path.exists(PATIENTS_FILE):
-            with open(PATIENTS_FILE, 'r') as f:
-                return json.load(f)
-        return {}
-    except:
-        return {}
-
-def save_patients(patients_data):
-    try:
-        with open(PATIENTS_FILE, 'w') as f:
-            json.dump(patients_data, f, indent=2)
-        return True
-    except:
-        return False
-
-def load_doctors():
-    try:
-        if os.path.exists(DOCTORS_FILE):
-            with open(DOCTORS_FILE, 'r') as f:
-                return json.load(f)
-        return {"drjohn": "password123", "drsmith": "password123"}
-    except:
-        return {"drjohn": "password123", "drsmith": "password123"}
-
-def save_doctors(doctors_data):
-    try:
-        with open(DOCTORS_FILE, 'w') as f:
-            json.dump(doctors_data, f, indent=2)
-        return True
-    except:
-        return False
+# Initialize database
+init_db()
 
 # Routes
 @app.route('/')
@@ -61,8 +27,6 @@ def doctor_welcome():
 # Patient Routes
 @app.route('/patient', methods=['GET', 'POST'])
 def patient():
-    patients_data = load_patients()
-    
     if request.method == 'POST':
         name = request.form.get("name", "").strip()
         city = request.form.get("city", "").strip()
@@ -80,7 +44,7 @@ def patient():
         ts = datetime.now().strftime("%Y%m%d%H%M%S")
         pid = f"{name.replace(' ', '_')}_{ts}"
 
-        patients_data[pid] = {
+        patient_data = {
             "id": pid, "name": name, "city": city, "age": age, "weight": weight,
             "bp": bp, "sugar": sugar, "oxygen": oxygen, "blood_group": blood_group,
             "symptoms": symptoms, "prescription": "", "timestamp": ts,
@@ -88,7 +52,7 @@ def patient():
             "submission_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
 
-        save_patients(patients_data)
+        save_patient(patient_data)
 
         socketio.emit('new_patient_notification', {
             'patient_id': pid,
@@ -122,10 +86,7 @@ def patient_search():
 
 @app.route('/patient/delete/<pid>', methods=['POST'])
 def patient_delete(pid):
-    patients_data = load_patients()
-    if pid in patients_data:
-        del patients_data[pid]
-        save_patients(patients_data)
+    delete_patient(pid)
     return redirect('/patient/history')
 
 @app.route('/patient/view/<pid>')
@@ -155,8 +116,6 @@ def doctor_login():
 
 @app.route('/doctor/register', methods=['GET', 'POST'])
 def doctor_register():
-    doctors_data = load_doctors()
-    
     if request.method == 'POST':
         name = request.form.get("name", "").strip()
         password = request.form.get("password", "").strip()
@@ -168,13 +127,16 @@ def doctor_register():
         if password != confirm_password:
             return render_template("doctor_register.html", error="Passwords don't match!")
         
+        # Check if doctor exists using database
+        doctors_data = load_doctors()
         if name in doctors_data:
             return render_template("doctor_register.html", error="Doctor already exists!")
         
-        doctors_data[name] = password
-        save_doctors(doctors_data)
-        
-        return render_template("doctor_register.html", success="Registration successful! Please login.")
+        # Save to database
+        if save_doctor(name, password):
+            return render_template("doctor_register.html", success="Registration successful! Please login.")
+        else:
+            return render_template("doctor_register.html", error="Registration failed!")
     
     return render_template("doctor_register.html")
 
@@ -212,10 +174,7 @@ def doctor_delete(pid):
     if not session.get('doctor_logged_in'):
         return redirect('/doctor/welcome')
     
-    patients_data = load_patients()
-    if pid in patients_data:
-        del patients_data[pid]
-        save_patients(patients_data)
+    delete_patient(pid)
     return redirect('/doctor/dashboard')
 
 @app.route('/doctor/patient/<pid>', methods=['GET', 'POST'])
@@ -241,9 +200,8 @@ def doctor_patient(pid):
         pdata["status"] = "prescribed"
         pdata["doctor_name"] = doctor_name
         pdata["prescription_date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        patients_data[pid] = pdata
         
-        save_patients(patients_data)
+        save_patient(pdata)
 
         socketio.emit('prescription_notification', {
             'patient_id': pid,
@@ -269,13 +227,11 @@ def handle_connect():
 def handle_disconnect():
     print('Client disconnected')
 
-# PRODUCTION READY - For Render/Railway
 if __name__ == '__main__':
     print("🚀 Health Kiosk Server Starting...")
     print("📍 Patient Portal: http://127.0.0.1:5000/patient/welcome")
     print("📍 Doctor Portal:  http://127.0.0.1:5000/doctor/welcome")
     print("🔑 Doctor Login: drjohn / password123")
     
-    # For production (Render/Railway)
     port = int(os.environ.get("PORT", 5000))
     socketio.run(app, host="0.0.0.0", port=port, debug=False)
