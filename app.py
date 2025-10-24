@@ -4,14 +4,13 @@ import os, json
 from datetime import datetime
 from database import init_db, load_doctors, save_doctor, load_patients, save_patient, delete_patient, delete_doctor
 
-app = Flask(__name__)
-app.secret_key = "healthkiosk_secret_key_2024"
-socketio = SocketIO(app, cors_allowed_origins="*")
+app = Flask(__name__, static_folder='static', template_folder='templates')
+app.secret_key = os.environ.get("SECRET_KEY", "healthkiosk_secret_key_2024")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
 # Initialize database
 init_db()
 
-# Routes
 @app.route('/')
 def home():
     return redirect('/patient/welcome')
@@ -24,7 +23,6 @@ def patient_welcome():
 def doctor_welcome():
     return render_template('doctor_welcome.html')
 
-# Patient Routes
 @app.route('/patient', methods=['GET', 'POST'])
 def patient():
     if request.method == 'POST':
@@ -74,14 +72,14 @@ def patient_search():
     patients_data = load_patients()
     search_results = {}
     search_query = ""
-    
+
     if request.method == 'POST':
         search_query = request.form.get("patient_id", "").strip()
         if search_query:
             for pid, pdata in patients_data.items():
                 if search_query.lower() in pid.lower() or search_query.lower() in pdata.get('name', '').lower():
                     search_results[pid] = pdata
-    
+
     return render_template("patient_search.html", patients=search_results, search_query=search_query)
 
 @app.route('/patient/delete/<pid>', methods=['POST'])
@@ -97,21 +95,20 @@ def patient_view(pid):
         return "No record found for ID: " + pid, 404
     return render_template("patient_view.html", pdata=pdata)
 
-# Doctor Routes
 @app.route('/doctor/login', methods=['GET', 'POST'])
 def doctor_login():
     doctors_data = load_doctors()
-    
+
     if request.method == 'POST':
         name = request.form.get("name", "").strip()
         password = request.form.get("password", "").strip()
-        
+
         if name in doctors_data and doctors_data[name] == password:
             session['doctor_logged_in'] = True
             session['doctor_name'] = name
             return redirect('/doctor/dashboard')
         return render_template("doctor_login.html", error="Invalid credentials!")
-    
+
     return render_template("doctor_login.html")
 
 @app.route('/doctor/register', methods=['GET', 'POST'])
@@ -120,60 +117,58 @@ def doctor_register():
         name = request.form.get("name", "").strip()
         password = request.form.get("password", "").strip()
         confirm_password = request.form.get("confirm_password", "").strip()
-        
+
         if not name or not password:
             return render_template("doctor_register.html", error="Please fill all fields!")
-        
+
         if password != confirm_password:
             return render_template("doctor_register.html", error="Passwords don't match!")
-        
-        # Check if doctor exists using database
+
         doctors_data = load_doctors()
         if name in doctors_data:
             return render_template("doctor_register.html", error="Doctor already exists!")
-        
-        # Save to database
+
         if save_doctor(name, password):
             return render_template("doctor_register.html", success="Registration successful! Please login.")
         else:
             return render_template("doctor_register.html", error="Registration failed!")
-    
+
     return render_template("doctor_register.html")
 
 @app.route('/doctor/dashboard')
 def doctor_dashboard():
     if not session.get('doctor_logged_in'):
         return redirect('/doctor/welcome')
-    
+
     patients_data = load_patients()
     waiting_patients = {pid: pdata for pid, pdata in patients_data.items() if pdata.get('status') == 'waiting'}
-    
+
     return render_template("doctor.html", patients=patients_data, waiting_patients=waiting_patients)
 
 @app.route('/doctor/search', methods=['GET', 'POST'])
 def doctor_search():
     if not session.get('doctor_logged_in'):
         return redirect('/doctor/welcome')
-    
+
     patients_data = load_patients()
     search_results = {}
     search_query = ""
-    
+
     if request.method == 'POST':
         search_query = request.form.get("patient_id", "").strip()
         if search_query:
             for pid, pdata in patients_data.items():
-                if (search_query.lower() in pid.lower() or 
+                if (search_query.lower() in pid.lower() or
                     search_query.lower() in pdata.get('name', '').lower()):
                     search_results[pid] = pdata
-    
+
     return render_template("doctor_search.html", patients=search_results, search_query=search_query)
 
 @app.route('/doctor/delete/<pid>', methods=['POST'])
 def doctor_delete(pid):
     if not session.get('doctor_logged_in'):
         return redirect('/doctor/welcome')
-    
+
     delete_patient(pid)
     return redirect('/doctor/dashboard')
 
@@ -181,7 +176,7 @@ def doctor_delete(pid):
 def doctor_patient(pid):
     if not session.get('doctor_logged_in'):
         return redirect('/doctor/welcome')
-    
+
     patients_data = load_patients()
     pdata = patients_data.get(pid)
     if not pdata:
@@ -190,17 +185,17 @@ def doctor_patient(pid):
     if request.method == 'POST':
         prescription = request.form.get("prescription", "").strip()
         doctor_name = session.get('doctor_name', 'Unknown Doctor')
-        
+
         if not prescription:
             return render_template("doctor_patient.html", pdata=pdata, error="Please write a prescription!")
-        
+
         prescription_with_info = f"Patient ID: {pid}\nPatient Name: {pdata['name']}\nPrescribed by: Dr. {doctor_name}\nDate: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n--- PRESCRIPTION ---\n{prescription}"
-        
+
         pdata["prescription"] = prescription_with_info
         pdata["status"] = "prescribed"
         pdata["doctor_name"] = doctor_name
         pdata["prescription_date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
+
         save_patient(pdata)
 
         socketio.emit('prescription_notification', {
@@ -232,6 +227,6 @@ if __name__ == '__main__':
     print("📍 Patient Portal: http://127.0.0.1:5000/patient/welcome")
     print("📍 Doctor Portal:  http://127.0.0.1:5000/doctor/welcome")
     print("🔑 Doctor Login: drjohn / password123")
-    
+
     port = int(os.environ.get("PORT", 5000))
-    socketio.run(app, host="0.0.0.0", port=port, debug=False)
+    socketio.run(app, host="0.0.0.0", port=port)
