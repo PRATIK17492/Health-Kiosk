@@ -264,10 +264,10 @@ def handle_disconnect():
 
 if __name__ == '__main__':
     print("🚀 Health Kiosk Server Starting...")
-    init_db()  # Initialize database on startup
     print("📍 Patient Portal: http://127.0.0.1:5000/patient/welcome")
     print("📍 Doctor Portal:  http://127.0.0.1:5000/doctor/welcome")
     print("🔑 Doctor Login: drjohn / password123")
+    print("🔑 Doctor Login: drsmith / password456")
     
     port = int(os.environ.get("PORT", 5000))
     socketio.run(app, host="0.0.0.0", port=port, debug=False)

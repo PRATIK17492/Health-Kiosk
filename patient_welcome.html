@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Health Kiosk - Patient</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .circular-logo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            animation: logoSpin 4s ease-in-out infinite;
+        }
+
+        @keyframes logoSpin {
+            0%, 100% { 
+                transform: translateY(0px) rotate(0deg);
+                box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            }
+            50% { 
+                transform: translateY(-8px) rotate(5deg);
+                box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+            }
+        }
+
+        .container-animation {
+            animation: slideInBounce 1s ease-out;
+        }
+
+        @keyframes slideInBounce {
+            0% {
+                opacity: 0;
+                transform: translateY(50px) scale(0.9);
+            }
+            60% {
+                opacity: 1;
+                transform: translateY(-10px) scale(1.02);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .pulse-glow {
+            animation: gentlePulse 3s ease-in-out infinite;
+        }
+
+        @keyframes gentlePulse {
+            0%, 100% { 
+                box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+            }
+            50% { 
+                box-shadow: 0 0 30px rgba(16, 185, 129, 0.4);
+            }
+        }
+
+        .btn-hover-effect {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-hover-effect:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+
+        .btn-hover-effect::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.6s ease;
+        }
+
+        .btn-hover-effect:hover::after {
+            width: 300px;
+            height: 300px;
+        }
+
+        .bg-animate {
+            background: linear-gradient(-45deg, #f0fdf4, #ecfdf5, #f0f9ff, #f0fdfa);
+            background-size: 400% 400%;
+            animation: gradientShift 10s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .text-glow {
+            text-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .fade-in {
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Feature Card Animations - Different from buttons */
+        .feature-card {
+            transition: all 0.5s ease;
+            animation: cardSlideIn 0.8s ease-out forwards;
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        @keyframes cardSlideIn {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px) rotate(1deg);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .feature-card:nth-child(1) { animation-delay: 0.8s; }
+        .feature-card:nth-child(2) { animation-delay: 1s; }
+        .feature-card:nth-child(3) { animation-delay: 1.2s; }
+
+        .feature-icon {
+            animation: iconBounce 2s ease-in-out infinite;
+        }
+
+        @keyframes iconBounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .feature-icon:nth-child(1) { animation-delay: 0s; }
+        .feature-icon:nth-child(2) { animation-delay: 0.5s; }
+        .feature-icon:nth-child(3) { animation-delay: 1s; }
+
+        /* Staggered text animations */
+        .stagger-1 { animation-delay: 0.2s; }
+        .stagger-2 { animation-delay: 0.4s; }
+        .stagger-3 { animation-delay: 0.6s; }
+
+        /* Floating background elements */
+        .floating-dot {
+            animation: floatAround 8s ease-in-out infinite;
+        }
+
+        @keyframes floatAround {
+            0%, 100% { 
+                transform: translate(0, 0) rotate(0deg);
+            }
+            25% { 
+                transform: translate(20px, -20px) rotate(90deg);
+            }
+            50% { 
+                transform: translate(0, -40px) rotate(180deg);
+            }
+            75% { 
+                transform: translate(-20px, -20px) rotate(270deg);
+            }
+        }
+
+        .floating-dot:nth-child(1) { animation-delay: 0s; }
+        .floating-dot:nth-child(2) { animation-delay: 2s; }
+        .floating-dot:nth-child(3) { animation-delay: 4s; }
+        .floating-dot:nth-child(4) { animation-delay: 6s; }
+    </style>
+</head>
+<body class="bg-animate min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-2xl bg-white/90 backdrop-blur-lg p-8 rounded-3xl shadow-2xl border border-green-200/50 text-center container-animation pulse-glow">
+        <!-- Circular Logo -->
+        <div class="flex justify-center mb-6">
+            <div class="bg-green-100 p-2 rounded-full">
+                <img src="{{ url_for('static', filename='logo.jpg') }}" 
+                     alt="Health Kiosk Logo" 
+                     class="circular-logo">
+            </div>
+        </div>
+        
+        <h1 class="text-4xl font-bold text-green-800 mb-2 text-glow fade-in stagger-1">HEALTH KIOSK</h1>
+        <p class="text-gray-600 mb-2 text-lg font-semibold fade-in stagger-2">Welcome to Health Kiosk</p>
+        <p class="text-gray-500 text-sm mb-8 fade-in stagger-3">Complete your health form and get instant prescription</p>
+
+        <!-- Feature Cards with Different Animations -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div class="feature-card bg-green-50 p-4 rounded-xl border border-green-200">
+                <i class="fas fa-file-medical text-2xl text-green-600 mb-2 feature-icon"></i>
+                <p class="text-sm font-medium text-green-800">Easy Form</p>
+                <p class="text-xs text-green-600">Quick health assessment</p>
+            </div>
+            <div class="feature-card bg-blue-50 p-4 rounded-xl border border-blue-200">
+                <i class="fas fa-user-md text-2xl text-blue-600 mb-2 feature-icon"></i>
+                <p class="text-sm font-medium text-blue-800">Doctor Review</p>
+                <p class="text-xs text-blue-600">Expert medical advice</p>
+            </div>
+            <div class="feature-card bg-purple-50 p-4 rounded-xl border border-purple-200">
+                <i class="fas fa-prescription text-2xl text-purple-600 mb-2 feature-icon"></i>
+                <p class="text-sm font-medium text-purple-800">Instant Prescription</p>
+                <p class="text-xs text-purple-600">Get treatment quickly</p>
+            </div>
+        </div>
+        
+        <!-- Buttons with Different Animations -->
+        <div class="space-y-4">
+            <a href="/patient" class="block bg-gradient-to-r from-green-600 to-green-700 text-white py-4 rounded-xl font-bold text-lg btn-hover-effect shadow-lg">
+                <i class="fas fa-plus-circle mr-2"></i>Start Health Form
+            </a>
+            
+            <a href="/patient/history" class="block bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 rounded-xl font-bold text-lg btn-hover-effect shadow-lg">
+                <i class="fas fa-history mr-2"></i>View My History
+            </a>
+
+            <a href="/patient/search" class="block bg-gradient-to-r from-purple-600 to-purple-700 text-white py-4 rounded-xl font-bold text-lg btn-hover-effect shadow-lg">
+                <i class="fas fa-search mr-2"></i>Search Records
+            </a>
+        </div>
+
+        <div class="mt-6 p-4 bg-green-50 rounded-xl border border-green-200 fade-in" style="animation-delay: 1.4s;">
+            <p class="text-green-800 text-sm font-medium">
+                <i class="fas fa-clock mr-2"></i>24/7 Access • <i class="fas fa-shield-alt mr-2 ml-4"></i>Secure & Private
+            </p>
+        </div>
+
+        <p class="text-gray-400 text-xs mt-6 fade-in" style="animation-delay: 1.6s;">
+            <i class="fas fa-heart mr-1"></i>Your Health is Our Priority
+        </p>
+    </div>
+
+    <!-- Floating background elements with different animation -->
+    <div class="fixed top-10 left-10 w-4 h-4 bg-green-300 rounded-full opacity-20 floating-dot"></div>
+    <div class="fixed top-20 right-20 w-6 h-6 bg-blue-300 rounded-full opacity-20 floating-dot"></div>
+    <div class="fixed bottom-20 left-20 w-8 h-8 bg-teal-300 rounded-full opacity-20 floating-dot"></div>
+    <div class="fixed bottom-10 right-10 w-5 h-5 bg-purple-300 rounded-full opacity-20 floating-dot"></div>
+</body>
+</html>
