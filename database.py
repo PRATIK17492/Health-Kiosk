@@ -1,8 +1,14 @@
 import sqlite3
 import os
+from datetime import datetime
+
+def get_db_path():
+    """Get database path that works on Render"""
+    return '/tmp/healthkiosk.db' if 'RENDER' in os.environ else 'healthkiosk.db'
 
 def init_db():
-    conn = sqlite3.connect('healthkiosk.db')
+    db_path = get_db_path()
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     
     # Create doctors table
@@ -10,7 +16,8 @@ def init_db():
         CREATE TABLE IF NOT EXISTS doctors (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL
+            password TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
     
@@ -31,41 +38,54 @@ def init_db():
             status TEXT DEFAULT 'waiting',
             doctor_name TEXT DEFAULT '',
             prescription_date TEXT DEFAULT '',
-            submission_date TEXT NOT NULL
+            submission_date TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
     
     # Insert default doctors if not exists
-    cursor.execute("INSERT OR IGNORE INTO doctors (username, password) VALUES ('drjohn', 'password123')")
-    cursor.execute("INSERT OR IGNORE INTO doctors (username, password) VALUES ('drsmith', 'password123')")
+    default_doctors = [
+        ('drjohn', 'password123'),
+        ('drsmith', 'password123')
+    ]
+    
+    for username, password in default_doctors:
+        cursor.execute("INSERT OR IGNORE INTO doctors (username, password) VALUES (?, ?)", (username, password))
     
     conn.commit()
     conn.close()
+    print(f"✅ Database initialized at: {db_path}")
 
 def load_doctors():
-    conn = sqlite3.connect('healthkiosk.db')
+    db_path = get_db_path()
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute("SELECT username, password FROM doctors")
     doctors = {row[0]: row[1] for row in cursor.fetchall()}
     conn.close()
+    print(f"📊 Loaded {len(doctors)} doctors from database")
     return doctors
 
 def save_doctor(username, password):
-    conn = sqlite3.connect('healthkiosk.db')
+    db_path = get_db_path()
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     try:
         cursor.execute("INSERT INTO doctors (username, password) VALUES (?, ?)", (username, password))
         conn.commit()
         conn.close()
+        print(f"✅ Doctor registered: {username}")
         return True
     except sqlite3.IntegrityError:
         conn.close()
+        print(f"❌ Doctor already exists: {username}")
         return False
 
 def load_patients():
-    conn = sqlite3.connect('healthkiosk.db')
+    db_path = get_db_path()
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM patients")
+    cursor.execute("SELECT * FROM patients ORDER BY created_at DESC")
     patients = {}
     for row in cursor.fetchall():
         patients[row[0]] = {
@@ -76,10 +96,12 @@ def load_patients():
             "submission_date": row[14]
         }
     conn.close()
+    print(f"📊 Loaded {len(patients)} patients from database")
     return patients
 
 def save_patient(patient_data):
-    conn = sqlite3.connect('healthkiosk.db')
+    db_path = get_db_path()
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute('''
         INSERT OR REPLACE INTO patients 
@@ -94,17 +116,22 @@ def save_patient(patient_data):
     ))
     conn.commit()
     conn.close()
+    print(f"✅ Patient saved: {patient_data['name']} ({patient_data['id']})")
 
 def delete_patient(patient_id):
-    conn = sqlite3.connect('healthkiosk.db')
+    db_path = get_db_path()
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute("DELETE FROM patients WHERE id = ?", (patient_id,))
     conn.commit()
     conn.close()
+    print(f"✅ Patient deleted: {patient_id}")
 
 def delete_doctor(username):
-    conn = sqlite3.connect('healthkiosk.db')
+    db_path = get_db_path()
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute("DELETE FROM doctors WHERE username = ?", (username,))
     conn.commit()
     conn.close()
+    print(f"✅ Doctor deleted: {username}")

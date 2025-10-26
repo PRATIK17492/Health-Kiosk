@@ -1,16 +1,19 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_socketio import SocketIO, emit
-import os, json
+import os
 from datetime import datetime
-from database import init_db, load_doctors, save_doctor, load_patients, save_patient, delete_patient, delete_doctor
+from database import init_db, load_doctors, save_doctor, load_patients, save_patient, delete_patient
 
-app = Flask(__name__, static_folder='static', template_folder='templates')
+app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "healthkiosk_secret_key_2024")
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+socketio = SocketIO(app, cors_allowed_origins="*")
 
-# Initialize database
-init_db()
+# Initialize database on startup
+@app.before_first_request
+def initialize():
+    init_db()
 
+# Routes
 @app.route('/')
 def home():
     return redirect('/patient/welcome')
@@ -23,42 +26,47 @@ def patient_welcome():
 def doctor_welcome():
     return render_template('doctor_welcome.html')
 
+# Patient Routes
 @app.route('/patient', methods=['GET', 'POST'])
 def patient():
     if request.method == 'POST':
-        name = request.form.get("name", "").strip()
-        city = request.form.get("city", "").strip()
-        age = request.form.get("age", "").strip()
-        weight = request.form.get("weight", "").strip()
-        bp = request.form.get("bp", "").strip()
-        sugar = request.form.get("sugar", "").strip()
-        oxygen = request.form.get("oxygen", "").strip()
-        blood_group = request.form.get("blood_group", "").strip()
-        symptoms = request.form.get("symptoms", "").strip()
+        try:
+            name = request.form.get("name", "").strip()
+            city = request.form.get("city", "").strip()
+            age = request.form.get("age", "").strip()
+            weight = request.form.get("weight", "").strip()
+            bp = request.form.get("bp", "").strip()
+            sugar = request.form.get("sugar", "").strip()
+            oxygen = request.form.get("oxygen", "").strip()
+            blood_group = request.form.get("blood_group", "").strip()
+            symptoms = request.form.get("symptoms", "").strip()
 
-        if not all([name, city, age, weight, bp, sugar, oxygen, blood_group, symptoms]):
-            return render_template("patient.html", error="Please fill all fields!")
+            if not all([name, city, age, weight, bp, sugar, oxygen, blood_group, symptoms]):
+                return render_template("patient.html", error="Please fill all fields!")
 
-        ts = datetime.now().strftime("%Y%m%d%H%M%S")
-        pid = f"{name.replace(' ', '_')}_{ts}"
+            ts = datetime.now().strftime("%Y%m%d%H%M%S")
+            pid = f"{name.replace(' ', '_')}_{ts}"
 
-        patient_data = {
-            "id": pid, "name": name, "city": city, "age": age, "weight": weight,
-            "bp": bp, "sugar": sugar, "oxygen": oxygen, "blood_group": blood_group,
-            "symptoms": symptoms, "prescription": "", "timestamp": ts,
-            "status": "waiting", "doctor_name": "", "prescription_date": "",
-            "submission_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        }
+            patient_data = {
+                "id": pid, "name": name, "city": city, "age": age, "weight": weight,
+                "bp": bp, "sugar": sugar, "oxygen": oxygen, "blood_group": blood_group,
+                "symptoms": symptoms, "prescription": "", "status": "waiting", 
+                "doctor_name": "", "prescription_date": "",
+                "submission_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }
 
-        save_patient(patient_data)
+            save_patient(patient_data)
 
-        socketio.emit('new_patient_notification', {
-            'patient_id': pid,
-            'patient_name': name,
-            'message': f'New patient {name} submitted form'
-        })
+            socketio.emit('new_patient_notification', {
+                'patient_id': pid,
+                'patient_name': name,
+                'message': f'New patient {name} submitted form'
+            })
 
-        return render_template("patient.html", message="Submitted successfully!", pid=pid)
+            return render_template("patient.html", message="Submitted successfully!", pid=pid)
+        
+        except Exception as e:
+            return render_template("patient.html", error=f"Error: {str(e)}")
 
     return render_template("patient.html")
 
@@ -72,20 +80,25 @@ def patient_search():
     patients_data = load_patients()
     search_results = {}
     search_query = ""
-
+    
     if request.method == 'POST':
         search_query = request.form.get("patient_id", "").strip()
         if search_query:
             for pid, pdata in patients_data.items():
-                if search_query.lower() in pid.lower() or search_query.lower() in pdata.get('name', '').lower():
+                if (search_query.lower() in pid.lower() or 
+                    search_query.lower() in pdata.get('name', '').lower()):
                     search_results[pid] = pdata
-
+    
     return render_template("patient_search.html", patients=search_results, search_query=search_query)
 
 @app.route('/patient/delete/<pid>', methods=['POST'])
 def patient_delete(pid):
-    delete_patient(pid)
-    return redirect('/patient/history')
+    try:
+        delete_patient(pid)
+        return redirect('/patient/history')
+    except Exception as e:
+        patients_data = load_patients()
+        return render_template("patient_history.html", patients=patients_data, error=f"Delete failed: {str(e)}")
 
 @app.route('/patient/view/<pid>')
 def patient_view(pid):
@@ -95,119 +108,141 @@ def patient_view(pid):
         return "No record found for ID: " + pid, 404
     return render_template("patient_view.html", pdata=pdata)
 
+# Doctor Routes
 @app.route('/doctor/login', methods=['GET', 'POST'])
 def doctor_login():
-    doctors_data = load_doctors()
-
     if request.method == 'POST':
-        name = request.form.get("name", "").strip()
-        password = request.form.get("password", "").strip()
-
-        if name in doctors_data and doctors_data[name] == password:
-            session['doctor_logged_in'] = True
-            session['doctor_name'] = name
-            return redirect('/doctor/dashboard')
-        return render_template("doctor_login.html", error="Invalid credentials!")
-
+        try:
+            name = request.form.get("name", "").strip()
+            password = request.form.get("password", "").strip()
+            
+            doctors_data = load_doctors()
+            
+            if name in doctors_data and doctors_data[name] == password:
+                session['doctor_logged_in'] = True
+                session['doctor_name'] = name
+                return redirect('/doctor/dashboard')
+            return render_template("doctor_login.html", error="Invalid credentials!")
+        
+        except Exception as e:
+            return render_template("doctor_login.html", error=f"Login error: {str(e)}")
+    
     return render_template("doctor_login.html")
 
 @app.route('/doctor/register', methods=['GET', 'POST'])
 def doctor_register():
     if request.method == 'POST':
-        name = request.form.get("name", "").strip()
-        password = request.form.get("password", "").strip()
-        confirm_password = request.form.get("confirm_password", "").strip()
-
-        if not name or not password:
-            return render_template("doctor_register.html", error="Please fill all fields!")
-
-        if password != confirm_password:
-            return render_template("doctor_register.html", error="Passwords don't match!")
-
-        doctors_data = load_doctors()
-        if name in doctors_data:
-            return render_template("doctor_register.html", error="Doctor already exists!")
-
-        if save_doctor(name, password):
-            return render_template("doctor_register.html", success="Registration successful! Please login.")
-        else:
-            return render_template("doctor_register.html", error="Registration failed!")
-
+        try:
+            name = request.form.get("name", "").strip()
+            password = request.form.get("password", "").strip()
+            confirm_password = request.form.get("confirm_password", "").strip()
+            
+            if not name or not password:
+                return render_template("doctor_register.html", error="Please fill all fields!")
+            
+            if password != confirm_password:
+                return render_template("doctor_register.html", error="Passwords don't match!")
+            
+            # Save to database
+            if save_doctor(name, password):
+                return render_template("doctor_register.html", success="Registration successful! Please login.")
+            else:
+                return render_template("doctor_register.html", error="Doctor already exists!")
+        
+        except Exception as e:
+            return render_template("doctor_register.html", error=f"Registration error: {str(e)}")
+    
     return render_template("doctor_register.html")
 
 @app.route('/doctor/dashboard')
 def doctor_dashboard():
     if not session.get('doctor_logged_in'):
         return redirect('/doctor/welcome')
-
-    patients_data = load_patients()
-    waiting_patients = {pid: pdata for pid, pdata in patients_data.items() if pdata.get('status') == 'waiting'}
-
-    return render_template("doctor.html", patients=patients_data, waiting_patients=waiting_patients)
+    
+    try:
+        patients_data = load_patients()
+        waiting_patients = {pid: pdata for pid, pdata in patients_data.items() if pdata.get('status') == 'waiting'}
+        
+        return render_template("doctor.html", patients=patients_data, waiting_patients=waiting_patients)
+    
+    except Exception as e:
+        return render_template("doctor.html", patients={}, waiting_patients={}, error=f"Error loading patients: {str(e)}")
 
 @app.route('/doctor/search', methods=['GET', 'POST'])
 def doctor_search():
     if not session.get('doctor_logged_in'):
         return redirect('/doctor/welcome')
-
-    patients_data = load_patients()
-    search_results = {}
-    search_query = ""
-
-    if request.method == 'POST':
-        search_query = request.form.get("patient_id", "").strip()
-        if search_query:
-            for pid, pdata in patients_data.items():
-                if (search_query.lower() in pid.lower() or
-                    search_query.lower() in pdata.get('name', '').lower()):
-                    search_results[pid] = pdata
-
-    return render_template("doctor_search.html", patients=search_results, search_query=search_query)
+    
+    try:
+        patients_data = load_patients()
+        search_results = {}
+        search_query = ""
+        
+        if request.method == 'POST':
+            search_query = request.form.get("patient_id", "").strip()
+            if search_query:
+                for pid, pdata in patients_data.items():
+                    if (search_query.lower() in pid.lower() or 
+                        search_query.lower() in pdata.get('name', '').lower()):
+                        search_results[pid] = pdata
+        
+        return render_template("doctor_search.html", patients=search_results, search_query=search_query)
+    
+    except Exception as e:
+        return render_template("doctor_search.html", patients={}, search_query="", error=f"Search error: {str(e)}")
 
 @app.route('/doctor/delete/<pid>', methods=['POST'])
 def doctor_delete(pid):
     if not session.get('doctor_logged_in'):
         return redirect('/doctor/welcome')
-
-    delete_patient(pid)
-    return redirect('/doctor/dashboard')
+    
+    try:
+        delete_patient(pid)
+        return redirect('/doctor/dashboard')
+    except Exception as e:
+        patients_data = load_patients()
+        return render_template("doctor.html", patients=patients_data, error=f"Delete failed: {str(e)}")
 
 @app.route('/doctor/patient/<pid>', methods=['GET', 'POST'])
 def doctor_patient(pid):
     if not session.get('doctor_logged_in'):
         return redirect('/doctor/welcome')
+    
+    try:
+        patients_data = load_patients()
+        pdata = patients_data.get(pid)
+        if not pdata:
+            return "Patient not found: " + pid, 404
 
-    patients_data = load_patients()
-    pdata = patients_data.get(pid)
-    if not pdata:
-        return "Patient not found: " + pid, 404
+        if request.method == 'POST':
+            prescription = request.form.get("prescription", "").strip()
+            doctor_name = session.get('doctor_name', 'Unknown Doctor')
+            
+            if not prescription:
+                return render_template("doctor_patient.html", pdata=pdata, error="Please write a prescription!")
+            
+            prescription_with_info = f"Patient ID: {pid}\nPatient Name: {pdata['name']}\nPrescribed by: Dr. {doctor_name}\nDate: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n--- PRESCRIPTION ---\n{prescription}"
+            
+            pdata["prescription"] = prescription_with_info
+            pdata["status"] = "prescribed"
+            pdata["doctor_name"] = doctor_name
+            pdata["prescription_date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            
+            save_patient(pdata)
 
-    if request.method == 'POST':
-        prescription = request.form.get("prescription", "").strip()
-        doctor_name = session.get('doctor_name', 'Unknown Doctor')
+            socketio.emit('prescription_notification', {
+                'patient_id': pid,
+                'patient_name': pdata['name'],
+                'doctor_name': doctor_name,
+                'message': f'Prescription ready from Dr. {doctor_name}'
+            })
 
-        if not prescription:
-            return render_template("doctor_patient.html", pdata=pdata, error="Please write a prescription!")
+            return redirect('/doctor/dashboard')
 
-        prescription_with_info = f"Patient ID: {pid}\nPatient Name: {pdata['name']}\nPrescribed by: Dr. {doctor_name}\nDate: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n--- PRESCRIPTION ---\n{prescription}"
-
-        pdata["prescription"] = prescription_with_info
-        pdata["status"] = "prescribed"
-        pdata["doctor_name"] = doctor_name
-        pdata["prescription_date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-        save_patient(pdata)
-
-        socketio.emit('prescription_notification', {
-            'patient_id': pid,
-            'patient_name': pdata['name'],
-            'doctor_name': doctor_name,
-            'message': f'Prescription ready from Dr. {doctor_name}'
-        })
-
-        return redirect('/doctor/dashboard')
-
-    return render_template("doctor_patient.html", pdata=pdata)
+        return render_template("doctor_patient.html", pdata=pdata)
+    
+    except Exception as e:
+        return render_template("doctor_patient.html", pdata={}, error=f"Error: {str(e)}")
 
 @app.route('/doctor/logout')
 def doctor_logout():
@@ -224,9 +259,10 @@ def handle_disconnect():
 
 if __name__ == '__main__':
     print("🚀 Health Kiosk Server Starting...")
+    init_db()  # Initialize database on startup
     print("📍 Patient Portal: http://127.0.0.1:5000/patient/welcome")
     print("📍 Doctor Portal:  http://127.0.0.1:5000/doctor/welcome")
     print("🔑 Doctor Login: drjohn / password123")
-
+    
     port = int(os.environ.get("PORT", 5000))
-    socketio.run(app, host="0.0.0.0", port=port)
+    socketio.run(app, host="0.0.0.0", port=port, debug=False)
