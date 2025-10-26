@@ -8,10 +8,15 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "healthkiosk_secret_key_2024")
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-# Initialize database on startup
-@app.before_first_request
+# Initialize database on startup - using first request flag
+db_initialized = False
+
+@app.before_request
 def initialize():
-    init_db()
+    global db_initialized
+    if not db_initialized:
+        init_db()
+        db_initialized = True
 
 # Routes
 @app.route('/')
