@@ -60,21 +60,6 @@
             transform: translateY(-3px);
         }
 
-        .btn-hover-effect::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: left 0.5s;
-        }
-
-        .btn-hover-effect:hover::before {
-            left: 100%;
-        }
-
         .bg-animate {
             background: linear-gradient(-45deg, #e0f2fe, #dbeafe, #e0e7ff, #f0f9ff);
             background-size: 400% 400%;
@@ -114,25 +99,26 @@
         
         <h1 class="text-4xl font-bold text-blue-800 mb-2 text-glow fade-in">HEALTH KIOSK</h1>
         <p class="text-gray-600 mb-2 text-lg font-semibold fade-in" style="animation-delay: 0.2s;">Doctor Portal</p>
-        <p class="text-gray-500 text-sm mb-8 fade-in" style="animation-delay: 0.4s;">Secure access to patient management system</p>
+        <p class="text-gray-500 text-sm mb-8 fade-in" style="animation-delay: 0.4s;">Authorized Medical Professionals Only</p>
         
+        <!-- Only Login Button - No Registration -->
         <div class="space-y-4">
             <a href="/doctor/login" class="block bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 rounded-xl font-bold text-lg btn-hover-effect shadow-lg transform transition-all duration-300 hover:scale-105">
                 <i class="fas fa-sign-in-alt mr-2"></i>Doctor Login
-            </a>
-            <a href="/doctor/register" class="block bg-gradient-to-r from-green-600 to-green-700 text-white py-4 rounded-xl font-bold text-lg btn-hover-effect shadow-lg transform transition-all duration-300 hover:scale-105">
-                <i class="fas fa-user-plus mr-2"></i>Doctor Registration
             </a>
         </div>
 
         <div class="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-200 fade-in" style="animation-delay: 0.6s;">
             <p class="text-blue-800 text-sm font-medium">
-                <i class="fas fa-shield-alt mr-2"></i>Secure Medical Professional Access
+                <i class="fas fa-shield-alt mr-2"></i>Pre-authorized Access Only
+            </p>
+            <p class="text-blue-600 text-xs mt-1">
+                Contact administrator for credentials
             </p>
         </div>
 
         <p class="text-gray-400 text-xs mt-6 fade-in" style="animation-delay: 0.8s;">
-            <i class="fas fa-lock mr-1"></i>Medical Professional Access Only
+            <i class="fas fa-lock mr-1"></i>Restricted Medical Access
         </p>
     </div>
 
