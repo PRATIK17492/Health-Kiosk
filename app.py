@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session
 from flask_socketio import SocketIO, emit
 import os
 from datetime import datetime
-from database import init_db, load_doctors, save_doctor, load_patients, save_patient, delete_patient
+from database import init_db, load_doctors, load_patients, save_patient, delete_patient
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "healthkiosk_secret_key_2024")
@@ -113,7 +113,7 @@ def patient_view(pid):
         return "No record found for ID: " + pid, 404
     return render_template("patient_view.html", pdata=pdata)
 
-# Doctor Routes
+# Doctor Routes - Only Login, No Registration
 @app.route('/doctor/login', methods=['GET', 'POST'])
 def doctor_login():
     if request.method == 'POST':
@@ -127,37 +127,12 @@ def doctor_login():
                 session['doctor_logged_in'] = True
                 session['doctor_name'] = name
                 return redirect('/doctor/dashboard')
-            return render_template("doctor_login.html", error="Invalid credentials!")
+            return render_template("doctor_login.html", error="Invalid credentials! Contact administrator for access.")
         
         except Exception as e:
             return render_template("doctor_login.html", error=f"Login error: {str(e)}")
     
     return render_template("doctor_login.html")
-
-@app.route('/doctor/register', methods=['GET', 'POST'])
-def doctor_register():
-    if request.method == 'POST':
-        try:
-            name = request.form.get("name", "").strip()
-            password = request.form.get("password", "").strip()
-            confirm_password = request.form.get("confirm_password", "").strip()
-            
-            if not name or not password:
-                return render_template("doctor_register.html", error="Please fill all fields!")
-            
-            if password != confirm_password:
-                return render_template("doctor_register.html", error="Passwords don't match!")
-            
-            # Save to database
-            if save_doctor(name, password):
-                return render_template("doctor_register.html", success="Registration successful! Please login.")
-            else:
-                return render_template("doctor_register.html", error="Doctor already exists!")
-        
-        except Exception as e:
-            return render_template("doctor_register.html", error=f"Registration error: {str(e)}")
-    
-    return render_template("doctor_register.html")
 
 @app.route('/doctor/dashboard')
 def doctor_dashboard():
@@ -266,8 +241,7 @@ if __name__ == '__main__':
     print("🚀 Health Kiosk Server Starting...")
     print("📍 Patient Portal: http://127.0.0.1:5000/patient/welcome")
     print("📍 Doctor Portal:  http://127.0.0.1:5000/doctor/welcome")
-    print("🔑 Doctor Login: drjohn / password123")
-    print("🔑 Doctor Login: drsmith / password456")
+    print("🔑 Available Doctors: shreyas, drjohn, drsmith, drwilson, drsarah")
     
     port = int(os.environ.get("PORT", 5000))
     socketio.run(app, host="0.0.0.0", port=port, debug=False)

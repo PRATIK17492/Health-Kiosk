@@ -13,14 +13,17 @@ def init_db():
         
         # Create doctors data file if it doesn't exist  
         if not os.path.exists('doctors_data.json'):
-            # Add default doctor
-            default_doctors = {
+            # Pre-defined doctors only - no registration allowed
+            predefined_doctors = {
+                "shreyas": "123",
                 "drjohn": "password123",
-                "drsmith": "password456"
+                "drsmith": "password456",
+                "drwilson": "health2024",
+                "drsarah": "medic123"
             }
             with open('doctors_data.json', 'w') as f:
-                json.dump(default_doctors, f, indent=2)
-            print("✅ Created doctors_data.json with default doctors")
+                json.dump(predefined_doctors, f, indent=2)
+            print("✅ Created doctors_data.json with predefined doctors")
         
         print("✅ Database initialized successfully")
         
@@ -28,12 +31,12 @@ def init_db():
         print(f"❌ Database initialization error: {e}")
 
 def load_doctors():
-    """Load doctors from JSON file"""
+    """Load predefined doctors from JSON file"""
     try:
         if os.path.exists('doctors_data.json'):
             with open('doctors_data.json', 'r') as f:
                 doctors = json.load(f)
-                print(f"✅ Loaded {len(doctors)} doctors from file")
+                print(f"✅ Loaded {len(doctors)} predefined doctors from file")
                 return doctors
         else:
             print("❌ doctors_data.json not found")
@@ -41,28 +44,6 @@ def load_doctors():
     except Exception as e:
         print(f"❌ Error loading doctors: {e}")
         return {}
-
-def save_doctor(name, password):
-    """Save a new doctor to JSON file"""
-    try:
-        doctors = load_doctors()
-        
-        if name in doctors:
-            return False  # Doctor already exists
-        
-        # Add new doctor
-        doctors[name] = password
-        
-        # Save to file
-        with open('doctors_data.json', 'w') as f:
-            json.dump(doctors, f, indent=2)
-        
-        print(f"✅ Saved doctor: {name}")
-        return True
-        
-    except Exception as e:
-        print(f"❌ Error saving doctor: {e}")
-        return False
 
 def load_patients():
     """Load patients from JSON file"""
