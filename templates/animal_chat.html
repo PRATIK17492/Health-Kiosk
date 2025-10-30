@@ -1,0 +1,566 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ t(lang, 'chat_with_vet') }} - Healthcare Kiosk</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            animation: slideIn 0.8s ease-out;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            margin-bottom: 5px;
+            font-size: 1.8em;
+        }
+
+        .language-selector {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .lang-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 6px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8em;
+        }
+
+        .lang-btn:hover, .lang-btn.active {
+            background: white;
+            color: #2c3e50;
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .vet-selection {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .vet-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 10px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .message.patient {
+            background: #3498db;
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 0;
+        }
+
+        .message.vet {
+            background: #e67e22;
+            color: white;
+            margin-right: auto;
+            border-bottom-left-radius: 0;
+        }
+
+        .message-time {
+            font-size: 0.8em;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        .image-message {
+            max-width: 200px;
+            border-radius: 8px;
+            margin: 5px 0;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: none;
+            height: 50px;
+        }
+
+        .camera-btn {
+            background: #f39c12;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .send-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .camera-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .camera-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        #cameraVideo {
+            width: 100%;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        #capturedImage {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .no-messages {
+            text-align: center;
+            color: #7f8c8d;
+            padding: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                height: 95vh;
+                margin: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.5em;
+            }
+            
+            .language-selector {
+                position: relative;
+                top: 0;
+                right: 0;
+                justify-content: center;
+                margin-bottom: 10px;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="language-selector">
+                <button class="lang-btn {{ 'active' if lang == 'en' else '' }}" onclick="setLanguage('en')">English</button>
+                <button class="lang-btn {{ 'active' if lang == 'hi' else '' }}" onclick="setLanguage('hi')">हिंदी</button>
+                <button class="lang-btn {{ 'active' if lang == 'kn' else '' }}" onclick="setLanguage('kn')">ಕನ್ನಡ</button>
+            </div>
+            <a href="/" class="back-btn">← {{ t(lang, 'back') }}</a>
+            <h1>🐾 {{ t(lang, 'chat_with_vet') }}</h1>
+        </div>
+
+        <div class="chat-container">
+            <div class="vet-selection">
+                <h3>{{ t(lang, 'select_vet') }}</h3>
+                <select id="vetSelect" class="vet-select">
+                    <option value="">{{ t(lang, 'select_vet') }}</option>
+                    {% for doctor in doctors %}
+                    <option value="{{ doctor.id }}">Dr. {{ doctor.name }} - {{ doctor.specialization }}</option>
+                    {% endfor %}
+                </select>
+                <input type="text" id="animalId" class="vet-select" placeholder="{{ t(lang, 'enter_animal_id') }}">
+            </div>
+
+            <div class="messages-container" id="messagesContainer">
+                <div class="no-messages">
+                    {{ t(lang, 'select_vet_and_animal') }}
+                </div>
+            </div>
+
+            <div class="input-container">
+                <textarea id="messageInput" class="message-input" placeholder="{{ t(lang, 'type_message') }}" disabled></textarea>
+                <button class="camera-btn" onclick="openCamera()" disabled>📷</button>
+                <button class="send-btn" onclick="sendMessage()" disabled>{{ t(lang, 'send_message') }}</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Camera Modal -->
+    <div id="cameraModal" class="camera-modal">
+        <div class="camera-content">
+            <h3>{{ t(lang, 'take_photo') }}</h3>
+            <video id="cameraVideo" autoplay></video>
+            <canvas id="cameraCanvas" style="display: none;"></canvas>
+            <img id="capturedImage" alt="Captured Photo">
+            <div class="camera-controls">
+                <button id="captureBtn" class="btn btn-primary" onclick="capturePhoto()">{{ t(lang, 'take_photo') }}</button>
+                <button id="retakeBtn" class="btn btn-danger" onclick="retakePhoto()" style="display: none;">{{ t(lang, 'retake') }}</button>
+                <button id="sendPhotoBtn" class="btn btn-success" onclick="sendPhoto()" style="display: none;">{{ t(lang, 'send_photo') }}</button>
+                <button class="btn btn-danger" onclick="closeCamera()">{{ t(lang, 'cancel') }}</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStream = null;
+        let capturedPhoto = null;
+        let selectedVetId = null;
+        let animalId = null;
+        let refreshInterval = null;
+
+        function setLanguage(lang) {
+            window.location.href = `/set_language/${lang}`;
+        }
+
+        // Vet selection
+        document.getElementById('vetSelect').addEventListener('change', function() {
+            selectedVetId = this.value;
+            animalId = document.getElementById('animalId').value.trim();
+            updateSendButton();
+            if (selectedVetId && animalId) {
+                loadMessages();
+                startAutoRefresh();
+            }
+        });
+
+        document.getElementById('animalId').addEventListener('input', function() {
+            animalId = this.value.trim();
+            updateSendButton();
+            if (selectedVetId && animalId) {
+                loadMessages();
+                startAutoRefresh();
+            }
+        });
+
+        function updateSendButton() {
+            const canSend = selectedVetId && animalId;
+            document.getElementById('messageInput').disabled = !canSend;
+            document.querySelector('.camera-btn').disabled = !canSend;
+            document.querySelector('.send-btn').disabled = !canSend;
+        }
+
+        async function loadMessages() {
+            if (!selectedVetId || !animalId) return;
+
+            try {
+                const response = await fetch(`/api/chat/messages/${animalId}/${selectedVetId}`);
+                const result = await response.json();
+
+                const container = document.getElementById('messagesContainer');
+                
+                if (result.success && result.messages.length > 0) {
+                    container.innerHTML = '';
+                    result.messages.forEach(msg => {
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = `message ${msg.sender_type}`;
+                        
+                        let content = msg.content;
+                        if (msg.image_data) {
+                            content += `<br><img src="data:image/jpeg;base64,${msg.image_data}" class="image-message" alt="Attached Photo">`;
+                        }
+                        
+                        messageDiv.innerHTML = `
+                            <div>${content}</div>
+                            <div class="message-time">${new Date(msg.timestamp).toLocaleString()}</div>
+                        `;
+                        container.appendChild(messageDiv);
+                    });
+                    container.scrollTop = container.scrollHeight;
+                } else {
+                    container.innerHTML = '<div class="no-messages">{{ t(lang, "no_messages") }}</div>';
+                }
+            } catch (error) {
+                console.error('Error loading messages:', error);
+            }
+        }
+
+        async function sendMessage() {
+            const message = document.getElementById('messageInput').value.trim();
+            if (!message || !selectedVetId || !animalId) return;
+
+            try {
+                const response = await fetch('/api/chat/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        patient_id: animalId,
+                        doctor_id: selectedVetId,
+                        message: message,
+                        sender_type: 'patient'
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('messageInput').value = '';
+                    loadMessages();
+                } else {
+                    alert('{{ t(lang, "error_sending_message") }}');
+                }
+            } catch (error) {
+                alert('{{ t(lang, "network_error") }}');
+            }
+        }
+
+        // Camera functions (same as patient chat)
+        async function openCamera() {
+            const modal = document.getElementById('cameraModal');
+            modal.style.display = 'flex';
+
+            try {
+                currentStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                document.getElementById('cameraVideo').srcObject = currentStream;
+            } catch (error) {
+                alert('{{ t(lang, "camera_error") }}');
+                closeCamera();
+            }
+        }
+
+        function closeCamera() {
+            const modal = document.getElementById('cameraModal');
+            modal.style.display = 'none';
+            
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+            
+            document.getElementById('captureBtn').style.display = 'block';
+            document.getElementById('retakeBtn').style.display = 'none';
+            document.getElementById('sendPhotoBtn').style.display = 'none';
+            document.getElementById('capturedImage').style.display = 'none';
+            document.getElementById('cameraVideo').style.display = 'block';
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('cameraVideo');
+            const canvas = document.getElementById('cameraCanvas');
+            const image = document.getElementById('capturedImage');
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+
+            capturedPhoto = canvas.toDataURL('image/jpeg').split(',')[1];
+            image.src = 'data:image/jpeg;base64,' + capturedPhoto;
+
+            video.style.display = 'none';
+            image.style.display = 'block';
+            
+            document.getElementById('captureBtn').style.display = 'none';
+            document.getElementById('retakeBtn').style.display = 'block';
+            document.getElementById('sendPhotoBtn').style.display = 'block';
+        }
+
+        function retakePhoto() {
+            const video = document.getElementById('cameraVideo');
+            const image = document.getElementById('capturedImage');
+
+            video.style.display = 'block';
+            image.style.display = 'none';
+            
+            document.getElementById('captureBtn').style.display = 'block';
+            document.getElementById('retakeBtn').style.display = 'none';
+            document.getElementById('sendPhotoBtn').style.display = 'none';
+            
+            capturedPhoto = null;
+        }
+
+        async function sendPhoto() {
+            if (!capturedPhoto || !selectedVetId || !animalId) return;
+
+            try {
+                const response = await fetch('/api/chat/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        patient_id: animalId,
+                        doctor_id: selectedVetId,
+                        message: '{{ t(lang, "photo_attached") }}',
+                        image_data: capturedPhoto,
+                        sender_type: 'patient'
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    closeCamera();
+                    loadMessages();
+                } else {
+                    alert('{{ t(lang, "error_sending_photo") }}');
+                }
+            } catch (error) {
+                alert('{{ t(lang, "network_error") }}');
+            }
+        }
+
+        function startAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+            refreshInterval = setInterval(loadMessages, 3000);
+        }
+
+        // Allow Enter key to send message
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Stop auto-refresh when leaving page
+        window.addEventListener('beforeunload', function() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1356 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Dashboard - Healthcare Kiosk</title>
+    <style>
+        /* Previous styles remain the same, adding new styles for search and records */
+
+        .search-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 300px;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .search-input:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .search-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .search-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .records-section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            display: none;
+        }
+
+        .records-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .records-table th,
+        .records-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .records-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .records-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .action-cell {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+
+        .queue-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .remove-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .remove-btn:hover {
+            background: #c0392b;
+        }
+
+        /* Previous styles remain the same */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f6fa;
+            color: #2c3e50;
+        }
+
+        .dashboard {
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            background: #2c3e50;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .doctor-info h1 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+
+        .doctor-info p {
+            opacity: 0.8;
+            font-size: 0.9em;
+        }
+
+        .top-bar-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .queue-btn, .chat-btn, .records-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chat-btn {
+            background: #3498db;
+        }
+
+        .records-btn {
+            background: #27ae60;
+        }
+
+        .queue-btn:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        .chat-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .records-btn:hover {
+            background: #219a52;
+            transform: translateY(-2px);
+        }
+
+        .queue-count {
+            background: white;
+            color: #e74c3c;
+            border-radius: 50%;
+            padding: 4px 8px;
+            font-size: 0.8em;
+            font-weight: bold;
+            min-width: 25px;
+            text-align: center;
+        }
+
+        .chat-count {
+            background: white;
+            color: #3498db;
+            border-radius: 50%;
+            padding: 4px 8px;
+            font-size: 0.8em;
+            font-weight: bold;
+            min-width: 25px;
+            text-align: center;
+        }
+
+        .records-count {
+            background: white;
+            color: #27ae60;
+            border-radius: 50%;
+            padding: 4px 8px;
+            font-size: 0.8em;
+            font-weight: bold;
+            min-width: 25px;
+            text-align: center;
+        }
+
+        .logout-btn {
+            background: #34495e;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: #2c3e50;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .welcome-section {
+            text-align: center;
+            padding: 80px 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            animation: fadeIn 1s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .welcome-section h2 {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .welcome-section p {
+            font-size: 1.2em;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+        }
+
+        .queue-section, .chat-section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            display: none;
+        }
+
+        .section-active {
+            display: block;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .patient-card {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .patient-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .patient-card.emergency {
+            border-left-color: #e74c3c;
+            background: #ffebee;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.01); }
+            100% { transform: scale(1); }
+        }
+
+        .patient-card.prescribed {
+            border-left-color: #27ae60;
+            background: #d4edda;
+        }
+
+        .prescribe-btn, .chat-patient-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+
+        .chat-patient-btn {
+            background: #3498db;
+        }
+
+        .prescribe-btn:hover {
+            background: #219a52;
+            transform: translateY(-2px);
+        }
+
+        .chat-patient-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .prescription-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .close-modal {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .prescription-form textarea {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            resize: vertical;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            padding: 12px 20px;
+            background: #ecf0f1;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tab.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-prescribed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .no-patients {
+            text-align: center;
+            padding: 60px 20px;
+            color: #7f8c8d;
+        }
+
+        .no-patients h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        /* Chat Section Styles */
+        .chat-container {
+            display: flex;
+            height: 600px;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .chat-sidebar {
+            width: 300px;
+            background: #f8f9fa;
+            border-right: 1px solid #e9ecef;
+            overflow-y: auto;
+        }
+
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            padding: 20px;
+            background: white;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .chat-input {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            gap: 10px;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 14px;
+            resize: none;
+        }
+
+        .send-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+
+        .message.patient {
+            background: white;
+            border: 1px solid #e9ecef;
+            margin-right: auto;
+        }
+
+        .message.doctor {
+            background: #3498db;
+            color: white;
+            margin-left: auto;
+        }
+
+        .message-time {
+            font-size: 0.7em;
+            opacity: 0.6;
+            margin-top: 5px;
+        }
+
+        .patient-list-item {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .patient-list-item:hover {
+            background: #e3f2fd;
+        }
+
+        .patient-list-item.active {
+            background: #3498db;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .top-bar {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .top-bar-controls {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .welcome-section {
+                padding: 40px 20px;
+            }
+            
+            .welcome-section h2 {
+                font-size: 2em;
+            }
+
+            .chat-container {
+                flex-direction: column;
+                height: 800px;
+            }
+
+            .chat-sidebar {
+                width: 100%;
+                height: 200px;
+            }
+
+            .search-container {
+                flex-direction: column;
+            }
+
+            .search-input {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="top-bar">
+            <div class="doctor-info">
+                <h1>Welcome, Dr. {{ doctor_name }}</h1>
+                <p>Healthcare Kiosk - Medical Dashboard</p>
+            </div>
+            <div class="top-bar-controls">
+                <button class="queue-btn" onclick="showSection('queue')">
+                    📋 Patient Queue <span class="queue-count" id="queueCount">0</span>
+                </button>
+                <button class="records-btn" onclick="showSection('records')">
+                    📁 My Records <span class="records-count" id="recordsCount">0</span>
+                </button>
+                <button class="chat-btn" onclick="showSection('chat')">
+                    💬 Chat with Patients <span class="chat-count" id="chatCount">0</span>
+                </button>
+                <a href="/doctor/logout" class="logout-btn">Logout</a>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div id="welcome" class="welcome-section section-active">
+                <h2>Medical Dashboard</h2>
+                <p>Manage patient assessments and provide medical prescriptions</p>
+                
+                <!-- ADDED SEARCH SECTION -->
+                <div class="search-section">
+                    <h3>Search Patients</h3>
+                    <div class="search-container">
+                        <input type="text" id="searchInput" class="search-input" placeholder="Search by Patient ID, Name, Village...">
+                        <button class="search-btn" onclick="searchPatients()">🔍 Search</button>
+                        <button class="search-btn" onclick="clearSearch()">🔄 Clear</button>
+                    </div>
+                    <div id="searchResults" style="margin-top: 15px;"></div>
+                </div>
+
+                <div style="display: flex; gap: 20px; justify-content: center; margin-top: 40px;">
+                    <div style="text-align: center; padding: 20px; background: #e3f2fd; border-radius: 10px; min-width: 200px;">
+                        <h3>Patient Queue</h3>
+                        <p style="font-size: 2em; color: #3498db;" id="welcomeQueueCount">0</p>
+                        <button class="chat-patient-btn" onclick="showSection('queue')">View Queue</button>
+                    </div>
+                    <div style="text-align: center; padding: 20px; background: #e8f5e8; border-radius: 10px; min-width: 200px;">
+                        <h3>My Prescriptions</h3>
+                        <p style="font-size: 2em; color: #27ae60;" id="welcomeRecordsCount">0</p>
+                        <button class="chat-patient-btn" onclick="showSection('records')">View Records</button>
+                    </div>
+                    <div style="text-align: center; padding: 20px; background: #fff3cd; border-radius: 10px; min-width: 200px;">
+                        <h3>Chat Patients</h3>
+                        <p style="font-size: 2em; color: #f39c12;" id="welcomeChatCount">0</p>
+                        <button class="chat-patient-btn" onclick="showSection('chat')">Start Chatting</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="queue" class="queue-section">
+                <div class="nav-tabs">
+                    <button class="nav-tab active" onclick="showSection('welcome')">← Back to Dashboard</button>
+                    <button class="nav-tab" onclick="loadPatientQueue()">🔄 Refresh Queue</button>
+                    <button class="nav-tab" onclick="removeAllFromQueue()" style="background: #e74c3c; color: white;">🗑️ Clear Queue</button>
+                </div>
+                <h2>Patient Queue</h2>
+                <div id="patientQueue">
+                    <div style="text-align: center; padding: 40px; color: #7f8c8d;">
+                        Loading patient queue...
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADDED RECORDS SECTION -->
+            <div id="records" class="records-section">
+                <div class="nav-tabs">
+                    <button class="nav-tab active" onclick="showSection('welcome')">← Back to Dashboard</button>
+                    <button class="nav-tab" onclick="loadDoctorRecords()">🔄 Refresh Records</button>
+                </div>
+                <h2>My Prescription Records</h2>
+                <div id="doctorRecords">
+                    <div style="text-align: center; padding: 40px; color: #7f8c8d;">
+                        Loading prescription records...
+                    </div>
+                </div>
+            </div>
+
+            <div id="chat" class="chat-section">
+                <div class="nav-tabs">
+                    <button class="nav-tab active" onclick="showSection('welcome')">← Back to Dashboard</button>
+                    <button class="nav-tab" onclick="loadChatPatients()">🔄 Refresh Patients</button>
+                </div>
+                <h2>Chat with Patients</h2>
+                <div class="chat-container">
+                    <div class="chat-sidebar">
+                        <div style="padding: 20px; background: #3498db; color: white;">
+                            <h3>Active Patients</h3>
+                        </div>
+                        <div id="chatPatientList">
+                            <div style="text-align: center; padding: 40px; color: #7f8c8d;">
+                                Loading patients...
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-main">
+                        <div class="chat-header">
+                            <h3 id="currentChatPatient">Select a patient to start chatting</h3>
+                        </div>
+                        <div class="chat-messages" id="chatMessages">
+                            <div style="text-align: center; padding: 40px; color: #7f8c8d;">
+                                Please select a patient from the list to view messages
+                            </div>
+                        </div>
+                        <div class="chat-input" id="chatInput" style="display: none;">
+                            <textarea class="message-input" id="messageInput" placeholder="Type your message..." rows="1"></textarea>
+                            <button class="send-btn" onclick="sendChatMessage()">➤</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prescription Modal -->
+    <div id="prescriptionModal" class="prescription-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Write Prescription</h3>
+                <button class="close-modal" onclick="closePrescriptionModal()">×</button>
+            </div>
+            <div id="patientDetails"></div>
+            <div class="prescription-form">
+                <textarea id="prescriptionText" placeholder="Enter prescription details, medications, dosage, instructions..."></textarea>
+                <button class="prescribe-btn" onclick="submitPrescription()" style="margin-top: 15px; width: 100%;">
+                    💊 Save Prescription
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class DoctorDashboard {
+            constructor() {
+                this.currentPatient = null;
+                this.currentChatPatient = null;
+                this.init();
+            }
+
+            init() {
+                this.loadPatientQueue();
+                this.loadDoctorRecords();
+                this.loadChatPatients();
+                setInterval(() => {
+                    this.loadPatientQueue();
+                    if (this.currentChatPatient) {
+                        this.loadChatMessages(this.currentChatPatient);
+                    }
+                }, 10000);
+            }
+
+            async loadPatientQueue() {
+                try {
+                    const response = await fetch('/api/doctor/queue');
+                    if (!response.ok) throw new Error('Network error');
+                    
+                    const patients = await response.json();
+                    this.renderPatientQueue(patients);
+                    this.updateQueueCount(patients);
+                } catch (error) {
+                    document.getElementById('patientQueue').innerHTML = `
+                        <div class="error-message">
+                            Failed to load patient queue. Please try again.
+                        </div>
+                    `;
+                }
+            }
+
+            renderPatientQueue(patients) {
+                const container = document.getElementById('patientQueue');
+                
+                if (!patients || patients.length === 0) {
+                    container.innerHTML = `
+                        <div class="no-patients">
+                            <h3>No Patients in Queue</h3>
+                            <p>When patients complete health assessments, they will appear here.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                patients.forEach(patient => {
+                    const statusClass = patient.status === 'prescribed' ? 'prescribed' : '';
+                    const statusBadge = patient.status === 'prescribed' ? 
+                        '<span class="status-badge status-prescribed">Prescribed</span>' : 
+                        '<span class="status-badge status-pending">Pending</span>';
+                    
+                    html += `
+                        <div class="patient-card ${patient.emergency_flag ? 'emergency' : ''} ${statusClass}">
+                            <div style="display: flex; justify-content: between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <h3>${patient.name} ${statusBadge}</h3>
+                                    <p><strong>ID:</strong> ${patient.id} | <strong>Type:</strong> ${patient.type}</p>
+                                    ${patient.village ? `<p><strong>Village:</strong> ${patient.village}</p>` : ''}
+                                    ${patient.owner ? `<p><strong>Owner:</strong> ${patient.owner}</p>` : ''}
+                                    ${patient.age ? `<p><strong>Age:</strong> ${patient.age} | <strong>Gender:</strong> ${patient.gender}</p>` : ''}
+                                    <p><strong>Symptoms:</strong> ${patient.symptoms || 'No symptoms recorded'}</p>
+                                    <p><strong>Time:</strong> ${new Date(patient.timestamp).toLocaleString()}</p>
+                                    ${patient.emergency_flag ? '<p style="color: #e74c3c; font-weight: bold;">🚨 EMERGENCY CASE</p>' : ''}
+                                </div>
+                                <button class="remove-btn" onclick="window.doctorDashboard.removeFromQueue('${patient.id}')">
+                                    ❌ Remove
+                                </button>
+                            </div>
+                            
+                            <div style="margin-top: 15px;">
+                                ${patient.status !== 'prescribed' ? `
+                                    <button class="prescribe-btn" onclick="window.doctorDashboard.openPrescriptionModal('${patient.id}', '${patient.type}')">
+                                        📝 Write Prescription
+                                    </button>
+                                ` : `
+                                    <div style="margin-top: 10px; padding: 10px; background: white; border-radius: 5px;">
+                                        <strong>Prescribed by:</strong> ${patient.prescribed_by || 'Unknown'} 
+                                        <br><strong>On:</strong> ${patient.prescription_date ? new Date(patient.prescription_date).toLocaleString() : 'Unknown'}
+                                    </div>
+                                `}
+                                <button class="chat-patient-btn" onclick="window.doctorDashboard.startChatWithPatient('${patient.id}', '${patient.type}')">
+                                    💬 Chat with Patient
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+            }
+
+            async removeFromQueue(patientId) {
+                if (confirm('Are you sure you want to remove this patient from the queue?')) {
+                    try {
+                        const response = await fetch(`/api/doctor/queue/${patientId}`, {
+                            method: 'DELETE'
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            this.loadPatientQueue();
+                        } else {
+                            alert('Error removing patient from queue');
+                        }
+                    } catch (error) {
+                        alert('Network error. Please try again.');
+                    }
+                }
+            }
+
+            async removeAllFromQueue() {
+                if (confirm('Are you sure you want to clear the entire patient queue?')) {
+                    try {
+                        const response = await fetch('/api/doctor/queue/all', {
+                            method: 'DELETE'
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            this.loadPatientQueue();
+                        } else {
+                            alert('Error clearing queue');
+                        }
+                    } catch (error) {
+                        alert('Network error. Please try again.');
+                    }
+                }
+            }
+
+            updateQueueCount(patients) {
+                const pendingCount = patients ? patients.filter(p => p.status !== 'prescribed').length : 0;
+                document.getElementById('queueCount').textContent = pendingCount;
+                document.getElementById('welcomeQueueCount').textContent = pendingCount;
+            }
+
+            async loadDoctorRecords() {
+                try {
+                    const response = await fetch('/api/doctor/records');
+                    if (!response.ok) throw new Error('Network error');
+                    
+                    const records = await response.json();
+                    this.renderDoctorRecords(records);
+                    this.updateRecordsCount(records);
+                } catch (error) {
+                    document.getElementById('doctorRecords').innerHTML = `
+                        <div class="error-message">
+                            Failed to load prescription records. Please try again.
+                        </div>
+                    `;
+                }
+            }
+
+            renderDoctorRecords(records) {
+                const container = document.getElementById('doctorRecords');
+                
+                if (!records || records.length === 0) {
+                    container.innerHTML = `
+                        <div class="no-patients">
+                            <h3>No Prescription Records</h3>
+                            <p>Your prescription records will appear here.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = `
+                    <table class="records-table">
+                        <thead>
+                            <tr>
+                                <th>Patient ID</th>
+                                <th>Patient Name</th>
+                                <th>Village</th>
+                                <th>Prescription Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                records.forEach(record => {
+                    html += `
+                        <tr>
+                            <td>${record.patient_id}</td>
+                            <td>${record.patient_name}</td>
+                            <td>${record.village}</td>
+                            <td>${new Date(record.prescription_date).toLocaleString()}</td>
+                            <td><span class="status-badge status-prescribed">Prescribed</span></td>
+                            <td class="action-cell">
+                                <button class="btn-small chat-patient-btn" onclick="window.doctorDashboard.viewPrescription('${record.id}')">
+                                    👁️ View
+                                </button>
+                                <button class="btn-small prescribe-btn" onclick="window.doctorDashboard.editPrescription('${record.id}')">
+                                    ✏️ Edit
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += `</tbody></table>`;
+                container.innerHTML = html;
+            }
+
+            updateRecordsCount(records) {
+                const recordsCount = records ? records.length : 0;
+                document.getElementById('recordsCount').textContent = recordsCount;
+                document.getElementById('welcomeRecordsCount').textContent = recordsCount;
+            }
+
+            async searchPatients() {
+                const searchTerm = document.getElementById('searchInput').value.trim();
+                
+                if (!searchTerm) {
+                    alert('Please enter a search term');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/doctor/search?q=${encodeURIComponent(searchTerm)}`);
+                    const results = await response.json();
+                    
+                    this.renderSearchResults(results);
+                } catch (error) {
+                    document.getElementById('searchResults').innerHTML = `
+                        <div class="error-message">
+                            Search failed. Please try again.
+                        </div>
+                    `;
+                }
+            }
+
+            renderSearchResults(results) {
+                const container = document.getElementById('searchResults');
+                
+                if (!results || results.length === 0) {
+                    container.innerHTML = `
+                        <div class="no-patients">
+                            <h3>No Patients Found</h3>
+                            <p>No patients match your search criteria.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '<h4>Search Results:</h4>';
+                results.forEach(patient => {
+                    html += `
+                        <div class="patient-card">
+                            <h3>${patient.name}</h3>
+                            <p><strong>ID:</strong> ${patient.id} | <strong>Village:</strong> ${patient.village}</p>
+                            <p><strong>Age:</strong> ${patient.age} | <strong>Gender:</strong> ${patient.gender}</p>
+                            <p><strong>Last Visit:</strong> ${new Date(patient.last_visit).toLocaleString()}</p>
+                            <p><strong>Status:</strong> ${patient.status}</p>
+                            <div style="margin-top: 10px;">
+                                <button class="prescribe-btn btn-small" onclick="window.doctorDashboard.openPrescriptionModal('${patient.id}', '${patient.type}')">
+                                    📝 Prescribe
+                                </button>
+                                <button class="chat-patient-btn btn-small" onclick="window.doctorDashboard.startChatWithPatient('${patient.id}', '${patient.type}')">
+                                    💬 Chat
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+            }
+
+            clearSearch() {
+                document.getElementById('searchInput').value = '';
+                document.getElementById('searchResults').innerHTML = '';
+            }
+
+            // ... rest of the existing methods remain the same
+            async loadChatPatients() {
+                try {
+                    const response = await fetch('/api/doctor/chat-patients');
+                    if (!response.ok) throw new Error('Network error');
+                    
+                    const patients = await response.json();
+                    this.renderChatPatients(patients);
+                    this.updateChatCount(patients);
+                } catch (error) {
+                    document.getElementById('chatPatientList').innerHTML = `
+                        <div class="error-message">
+                            Failed to load chat patients. Please try again.
+                        </div>
+                    `;
+                }
+            }
+
+            renderChatPatients(patients) {
+                const container = document.getElementById('chatPatientList');
+                
+                if (!patients || patients.length === 0) {
+                    container.innerHTML = `
+                        <div class="no-patients">
+                            <h3>No Chat Patients</h3>
+                            <p>When patients send messages, they will appear here.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                patients.forEach(patient => {
+                    html += `
+                        <div class="patient-list-item" onclick="window.doctorDashboard.selectChatPatient('${patient.patient_id}', '${patient.type}')" id="chat-patient-${patient.patient_id}">
+                            <div style="font-weight: bold;">${patient.name}</div>
+                            <div style="font-size: 0.8em; color: #7f8c8d;">
+                                ${patient.type === 'human' ? 'Human Patient' : 'Animal Patient'}
+                                ${patient.village ? ` | ${patient.village}` : ''}
+                            </div>
+                            <div style="font-size: 0.7em; color: #95a5a6; margin-top: 5px;">
+                                Last activity: ${patient.last_message_time ? new Date(patient.last_message_time).toLocaleString() : 'No messages'}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+            }
+
+            updateChatCount(patients) {
+                const chatCount = patients ? patients.length : 0;
+                document.getElementById('chatCount').textContent = chatCount;
+                document.getElementById('welcomeChatCount').textContent = chatCount;
+            }
+
+            selectChatPatient(patientId, patientType) {
+                this.currentChatPatient = patientId;
+                
+                document.querySelectorAll('.patient-list-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                document.getElementById(`chat-patient-${patientId}`).classList.add('active');
+                
+                document.getElementById('currentChatPatient').textContent = `Chat with ${patientId}`;
+                document.getElementById('chatInput').style.display = 'flex';
+                
+                this.loadChatMessages(patientId);
+            }
+
+            startChatWithPatient(patientId, patientType) {
+                showSection('chat');
+                setTimeout(() => {
+                    this.selectChatPatient(patientId, patientType);
+                }, 100);
+            }
+
+            async loadChatMessages(patientId) {
+                if (!patientId) return;
+                
+                try {
+                    const doctorId = {{ session.get('doctor_id', 0) }};
+                    const response = await fetch(`/api/chat/messages/${patientId}/${doctorId}`);
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.renderChatMessages(result.messages);
+                    }
+                } catch (error) {
+                    console.error('Error loading messages:', error);
+                }
+            }
+
+            renderChatMessages(messages) {
+                const container = document.getElementById('chatMessages');
+                
+                if (!messages || messages.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: #7f8c8d;">
+                            No messages yet. Start the conversation!
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                messages.forEach(message => {
+                    const messageClass = message.sender_type === 'doctor' ? 'doctor' : 'patient';
+                    const senderName = message.sender_type === 'doctor' ? 'You' : 'Patient';
+                    
+                    html += `
+                        <div class="message ${messageClass}">
+                            <div><strong>${senderName}:</strong> ${message.content}</div>
+                            <div class="message-time">
+                                ${new Date(message.timestamp).toLocaleString()}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+                container.scrollTop = container.scrollHeight;
+            }
+
+            async sendChatMessage() {
+                if (!this.currentChatPatient) return;
+                
+                const messageInput = document.getElementById('messageInput');
+                const message = messageInput.value.trim();
+                
+                if (!message) return;
+                
+                try {
+                    const doctorId = {{ session.get('doctor_id', 0) }};
+                    const response = await fetch('/api/chat/send', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            patient_id: this.currentChatPatient,
+                            doctor_id: doctorId,
+                            message: message,
+                            sender_type: 'doctor'
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        messageInput.value = '';
+                        this.loadChatMessages(this.currentChatPatient);
+                        this.loadChatPatients();
+                    } else {
+                        alert('Error sending message');
+                    }
+                } catch (error) {
+                    console.error('Error sending message:', error);
+                    alert('Network error. Please try again.');
+                }
+            }
+
+            openPrescriptionModal(patientId, patientType) {
+                this.currentPatient = { id: patientId, type: patientType };
+                
+                fetch(`/api/doctor/patient/${patientId}`)
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            const patient = result.patient;
+                            document.getElementById('patientDetails').innerHTML = `
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
+                                    <h4>Patient: ${patient.name || patient.patient_id}</h4>
+                                    <p><strong>Village:</strong> ${patient.village} | <strong>Age:</strong> ${patient.age} | <strong>Gender:</strong> ${patient.gender}</p>
+                                    <p><strong>Symptoms:</strong> ${patient.symptoms || 'None recorded'}</p>
+                                    <p><strong>Vitals:</strong> 
+                                        ${patient.bp_systolic ? `BP: ${patient.bp_systolic}/${patient.bp_diastolic}` : ''}
+                                        ${patient.temperature ? ` | Temp: ${patient.temperature}°C` : ''}
+                                        ${patient.pulse ? ` | Pulse: ${patient.pulse} BPM` : ''}
+                                    </p>
+                                </div>
+                            `;
+                        }
+                    });
+                
+                document.getElementById('prescriptionModal').style.display = 'flex';
+                document.getElementById('prescriptionText').value = '';
+                document.getElementById('prescriptionText').focus();
+            }
+
+            async submitPrescription() {
+                const prescription = document.getElementById('prescriptionText').value.trim();
+                
+                if (!prescription) {
+                    alert('Please enter prescription details');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/doctor/prescribe', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            record_id: this.currentPatient.id,
+                            record_type: this.currentPatient.type,
+                            prescription: prescription
+                        })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        alert('Prescription saved successfully!');
+                        this.closePrescriptionModal();
+                        this.loadPatientQueue();
+                        this.loadDoctorRecords();
+                    } else {
+                        alert('Error: ' + result.error);
+                    }
+                } catch (error) {
+                    alert('Network error. Please try again.');
+                }
+            }
+
+            closePrescriptionModal() {
+                document.getElementById('prescriptionModal').style.display = 'none';
+                this.currentPatient = null;
+            }
+
+            viewPrescription(recordId) {
+                // Implementation for viewing prescription details
+                alert('View prescription: ' + recordId);
+            }
+
+            editPrescription(recordId) {
+                // Implementation for editing prescription
+                alert('Edit prescription: ' + recordId);
+            }
+        }
+
+        function showSection(sectionName) {
+            document.querySelectorAll('.main-content > div').forEach(section => {
+                section.classList.remove('section-active');
+            });
+            
+            document.getElementById(sectionName).classList.add('section-active');
+        }
+
+        function loadPatientQueue() {
+            window.doctorDashboard.loadPatientQueue();
+        }
+
+        function loadDoctorRecords() {
+            window.doctorDashboard.loadDoctorRecords();
+        }
+
+        function loadChatPatients() {
+            window.doctorDashboard.loadChatPatients();
+        }
+
+        function searchPatients() {
+            window.doctorDashboard.searchPatients();
+        }
+
+        function clearSearch() {
+            window.doctorDashboard.clearSearch();
+        }
+
+        function removeAllFromQueue() {
+            window.doctorDashboard.removeAllFromQueue();
+        }
+
+        function sendChatMessage() {
+            window.doctorDashboard.sendChatMessage();
+        }
+
+        function closePrescriptionModal() {
+            window.doctorDashboard.closePrescriptionModal();
+        }
+
+        function submitPrescription() {
+            window.doctorDashboard.submitPrescription();
+        }
+
+        // Allow Enter key to send message and search
+        document.addEventListener('DOMContentLoaded', () => {
+            const messageInput = document.getElementById('messageInput');
+            if (messageInput) {
+                messageInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendChatMessage();
+                    }
+                });
+            }
+
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        searchPatients();
+                    }
+                });
+            }
+        });
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            window.doctorDashboard = new DoctorDashboard();
+        });
+    </script>
+</body>
+</html>

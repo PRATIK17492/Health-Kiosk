@@ -1,0 +1,824 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ t(lang, 'chat_with_patient') }} - Healthcare Kiosk</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f6fa;
+            color: #2c3e50;
+        }
+
+        .chat-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .doctor-info h1 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+
+        .doctor-info p {
+            opacity: 0.8;
+            font-size: 0.9em;
+        }
+
+        .language-selector {
+            display: flex;
+            gap: 10px;
+        }
+
+        .lang-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .lang-btn:hover, .lang-btn.active {
+            background: white;
+            color: #2c3e50;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .chat-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .patients-sidebar {
+            width: 300px;
+            background: #f8f9fa;
+            border-right: 1px solid #e9ecef;
+            overflow-y: auto;
+        }
+
+        .patients-header {
+            padding: 20px;
+            background: #3498db;
+            color: white;
+        }
+
+        .patient-list {
+            padding: 10px;
+        }
+
+        .patient-item {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            margin-bottom: 5px;
+        }
+
+        .patient-item:hover {
+            background: #e3f2fd;
+        }
+
+        .patient-item.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .patient-id {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .patient-type {
+            font-size: 0.8em;
+            opacity: 0.7;
+        }
+
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            padding: 20px;
+            background: white;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .current-patient {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .messages-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.patient {
+            justify-content: flex-start;
+        }
+
+        .message.doctor {
+            justify-content: flex-end;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            position: relative;
+        }
+
+        .message.patient .message-bubble {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message.doctor .message-bubble {
+            background: #3498db;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-time {
+            font-size: 0.7em;
+            opacity: 0.6;
+            margin-top: 5px;
+        }
+
+        .message-image {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 10px;
+            margin-top: 5px;
+            cursor: pointer;
+        }
+
+        .input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 14px;
+            resize: none;
+            max-height: 100px;
+            font-family: inherit;
+        }
+
+        .message-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .camera-btn, .send-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+        }
+
+        .camera-btn:hover, .send-btn:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+        }
+
+        .camera-btn {
+            background: #27ae60;
+        }
+
+        .camera-btn:hover {
+            background: #219a52;
+        }
+
+        .no-patient-selected {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            color: #7f8c8d;
+            font-size: 1.2em;
+        }
+
+        .camera-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .camera-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        #cameraVideo {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .capture-btn, .close-camera {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .capture-btn {
+            background: #3498db;
+            color: white;
+        }
+
+        .close-camera {
+            background: #e74c3c;
+            color: white;
+        }
+
+        #capturedImage {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .prescription-section {
+            background: #e3f2fd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+
+        .prescription-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .chat-content {
+                flex-direction: column;
+            }
+            
+            .patients-sidebar {
+                width: 100%;
+                height: 200px;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .language-selector {
+                justify-content: center;
+            }
+            
+            .message-bubble {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="header">
+            <div class="doctor-info">
+                <h1>Dr. {{ doctor_name }}</h1>
+                <p>{{ t(lang, 'chat_with_patient') }}</p>
+            </div>
+            <div class="language-selector">
+                <button class="lang-btn {{ 'active' if lang == 'en' else '' }}" onclick="setLanguage('en')">English</button>
+                <button class="lang-btn {{ 'active' if lang == 'hi' else '' }}" onclick="setLanguage('hi')">हिंदी</button>
+                <button class="lang-btn {{ 'active' if lang == 'kn' else '' }}" onclick="setLanguage('kn')">ಕನ್ನಡ</button>
+            </div>
+            <a href="/doctor/dashboard" class="back-btn">← {{ t(lang, 'back') }}</a>
+        </div>
+
+        <div class="chat-content">
+            <div class="patients-sidebar">
+                <div class="patients-header">
+                    <h3>{{ t(lang, 'patients') }}</h3>
+                </div>
+                <div class="patient-list" id="patientList">
+                    <div style="text-align: center; padding: 20px; color: #7f8c8d;">
+                        {{ t(lang, 'loading') }}...
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-area">
+                <div class="chat-header">
+                    <div class="current-patient" id="currentPatient">
+                        {{ t(lang, 'select_patient') }}
+                    </div>
+                    <button class="btn btn-primary" onclick="refreshPatients()">
+                        🔄 {{ t(lang, 'refresh') }}
+                    </button>
+                </div>
+
+                <div class="messages-container" id="messagesContainer">
+                    <div class="no-patient-selected">
+                        {{ t(lang, 'select_patient_to_chat') }}
+                    </div>
+                </div>
+
+                <div class="input-area" id="inputArea" style="display: none;">
+                    <textarea class="message-input" id="messageInput" placeholder="{{ t(lang, 'type_message') }}..." rows="1"></textarea>
+                    <button class="camera-btn" onclick="openCamera()">📷</button>
+                    <button class="send-btn" onclick="sendMessage()">➤</button>
+                    <button class="prescription-btn" onclick="openPrescriptionModal()">📋 {{ t(lang, 'write_prescription') }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Camera Modal -->
+    <div id="cameraModal" class="camera-modal">
+        <div class="camera-content">
+            <h3>{{ t(lang, 'take_photo') }}</h3>
+            <video id="cameraVideo" autoplay playsinline></video>
+            <canvas id="cameraCanvas" style="display: none;"></canvas>
+            <img id="capturedImage" alt="Captured Photo">
+            <div class="camera-controls">
+                <button class="capture-btn" onclick="capturePhoto()" id="captureBtn">{{ t(lang, 'capture') }}</button>
+                <button class="capture-btn" onclick="sendPhoto()" id="sendPhotoBtn" style="display: none;">{{ t(lang, 'send_photo') }}</button>
+                <button class="close-camera" onclick="closeCamera()">{{ t(lang, 'cancel') }}</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prescription Modal -->
+    <div id="prescriptionModal" class="camera-modal">
+        <div class="camera-content">
+            <h3>{{ t(lang, 'write_prescription') }}</h3>
+            <textarea id="prescriptionText" style="width: 100%; height: 200px; padding: 10px; border: 2px solid #e9ecef; border-radius: 8px; margin-bottom: 15px;" placeholder="{{ t(lang, 'prescription_placeholder') }}"></textarea>
+            <div class="camera-controls">
+                <button class="capture-btn" onclick="sendPrescription()">{{ t(lang, 'send_prescription') }}</button>
+                <button class="close-camera" onclick="closePrescriptionModal()">{{ t(lang, 'cancel') }}</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPatientId = null;
+        let currentPatientType = null;
+        let stream = null;
+        let capturedPhoto = null;
+
+        function setLanguage(lang) {
+            window.location.href = `/set_language/${lang}`;
+        }
+
+        async function loadPatients() {
+            try {
+                const response = await fetch('/api/doctor/chat-patients');
+                const patients = await response.json();
+                
+                const patientList = document.getElementById('patientList');
+                
+                if (!patients || patients.length === 0) {
+                    patientList.innerHTML = `<div style="text-align: center; padding: 20px; color: #7f8c8d;">{{ t(lang, 'no_patients') }}</div>`;
+                    return;
+                }
+
+                let html = '';
+                patients.forEach(patient => {
+                    const lastMessage = patient.last_message ? 
+                        (patient.last_message.length > 30 ? patient.last_message.substring(0, 30) + '...' : patient.last_message) : 
+                        '{{ t(lang, "new_message") }}';
+                    
+                    html += `
+                        <div class="patient-item" onclick="selectPatient('${patient.id}', '${patient.type}')" id="patient-${patient.id}">
+                            <div class="patient-id">${patient.name}</div>
+                            <div class="patient-type">${patient.type === 'human' ? '{{ t(lang, "human_patient") }}' : '{{ t(lang, "animal_patient") }}'}</div>
+                            <div style="font-size: 0.8em; color: #7f8c8d; margin-top: 5px;">${lastMessage}</div>
+                        </div>
+                    `;
+                });
+
+                patientList.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading patients:', error);
+                patientList.innerHTML = `<div style="text-align: center; padding: 20px; color: #e74c3c;">Error loading patients</div>`;
+            }
+        }
+
+        function selectPatient(patientId, patientType) {
+            currentPatientId = patientId;
+            currentPatientType = patientType;
+            
+            // Update UI
+            document.querySelectorAll('.patient-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            const patientElement = document.getElementById(`patient-${patientId}`);
+            if (patientElement) {
+                patientElement.classList.add('active');
+            }
+            
+            document.getElementById('currentPatient').textContent = `Chat with ${patientId}`;
+            document.getElementById('inputArea').style.display = 'flex';
+            document.querySelector('.no-patient-selected').style.display = 'none';
+            
+            // Load messages
+            loadMessages();
+        }
+
+        async function loadMessages() {
+            if (!currentPatientId) return;
+            
+            try {
+                const doctorId = {{ session.get('doctor_id', 0) }};
+                const response = await fetch(`/api/chat/messages/${currentPatientId}/${doctorId}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayMessages(result.messages);
+                } else {
+                    console.error('Error loading messages:', result.error);
+                }
+            } catch (error) {
+                console.error('Error loading messages:', error);
+            }
+        }
+
+        function displayMessages(messages) {
+            const container = document.getElementById('messagesContainer');
+            container.innerHTML = '';
+            
+            if (!messages || messages.length === 0) {
+                container.innerHTML = `<div style="text-align: center; padding: 40px; color: #7f8c8d;">{{ t(lang, 'no_messages') }}</div>`;
+                return;
+            }
+            
+            messages.forEach(message => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${message.sender_type}`;
+                
+                const senderName = message.sender_type === 'doctor' ? '{{ t(lang, "you") }}' : '{{ t(lang, "patient") }}';
+                
+                let content = `
+                    <div class="message-bubble">
+                        <div><strong>${senderName}:</strong> ${message.content}</div>
+                `;
+                
+                if (message.image_data) {
+                    content += `<img src="data:image/jpeg;base64,${message.image_data}" class="message-image" onclick="viewImage('${message.image_data}')">`;
+                }
+                
+                content += `
+                        <div class="message-time">
+                            ${new Date(message.timestamp).toLocaleString()}
+                        </div>
+                    </div>
+                `;
+                
+                messageDiv.innerHTML = content;
+                container.appendChild(messageDiv);
+            });
+            
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function sendMessage() {
+            if (!currentPatientId) return;
+            
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
+            
+            if (!message) return;
+            
+            try {
+                const doctorId = {{ session.get('doctor_id', 0) }};
+                const response = await fetch('/api/chat/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        patient_id: currentPatientId,
+                        doctor_id: doctorId,
+                        message: message,
+                        sender_type: 'doctor'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    messageInput.value = '';
+                    loadMessages();
+                    loadPatients(); // Refresh patient list to update last message
+                } else {
+                    alert('{{ t(lang, "error_sending") }}');
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('{{ t(lang, "error_sending") }}');
+            }
+        }
+
+        async function sendPhoto() {
+            if (!currentPatientId || !capturedPhoto) return;
+            
+            try {
+                const doctorId = {{ session.get('doctor_id', 0) }};
+                const response = await fetch('/api/chat/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        patient_id: currentPatientId,
+                        doctor_id: doctorId,
+                        message: '{{ t(lang, "photo_sent") }}',
+                        image_data: capturedPhoto,
+                        sender_type: 'doctor'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    closeCamera();
+                    loadMessages();
+                    loadPatients();
+                } else {
+                    alert('{{ t(lang, "error_sending") }}');
+                }
+            } catch (error) {
+                console.error('Error sending photo:', error);
+                alert('{{ t(lang, "error_sending") }}');
+            }
+        }
+
+        async function openCamera() {
+            const modal = document.getElementById('cameraModal');
+            const video = document.getElementById('cameraVideo');
+            
+            modal.style.display = 'flex';
+            
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                
+                // Reset UI
+                document.getElementById('capturedImage').style.display = 'none';
+                document.getElementById('captureBtn').style.display = 'block';
+                document.getElementById('sendPhotoBtn').style.display = 'none';
+                video.style.display = 'block';
+            } catch (error) {
+                console.error('Camera error:', error);
+                alert('{{ t(lang, "camera_error") }}');
+                closeCamera();
+            }
+        }
+
+        function closeCamera() {
+            const modal = document.getElementById('cameraModal');
+            modal.style.display = 'none';
+            
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            
+            capturedPhoto = null;
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('cameraVideo');
+            const canvas = document.getElementById('cameraCanvas');
+            const image = document.getElementById('capturedImage');
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            
+            capturedPhoto = canvas.toDataURL('image/jpeg').split(',')[1];
+            image.src = 'data:image/jpeg;base64,' + capturedPhoto;
+            image.style.display = 'block';
+            video.style.display = 'none';
+            
+            document.getElementById('captureBtn').style.display = 'none';
+            document.getElementById('sendPhotoBtn').style.display = 'block';
+            
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+        }
+
+        function viewImage(imageData) {
+            const img = new Image();
+            img.src = 'data:image/jpeg;base64,' + imageData;
+            img.style.maxWidth = '90vw';
+            img.style.maxHeight = '90vh';
+            
+            const modal = document.getElementById('cameraModal');
+            const content = modal.querySelector('.camera-content');
+            content.innerHTML = '';
+            content.appendChild(img);
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'close-camera';
+            closeBtn.textContent = '{{ t(lang, "cancel") }}';
+            closeBtn.onclick = closeCamera;
+            content.appendChild(closeBtn);
+            
+            modal.style.display = 'flex';
+        }
+
+        function openPrescriptionModal() {
+            document.getElementById('prescriptionModal').style.display = 'flex';
+        }
+
+        function closePrescriptionModal() {
+            document.getElementById('prescriptionModal').style.display = 'none';
+        }
+
+        async function sendPrescription() {
+            if (!currentPatientId) return;
+            
+            const prescriptionText = document.getElementById('prescriptionText').value.trim();
+            
+            if (!prescriptionText) {
+                alert('Please enter prescription details');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/doctor/prescribe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        record_id: currentPatientId,
+                        record_type: currentPatientType,
+                        prescription: prescriptionText
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    closePrescriptionModal();
+                    document.getElementById('prescriptionText').value = '';
+                    
+                    // Also send as chat message
+                    const doctorId = {{ session.get('doctor_id', 0) }};
+                    await fetch('/api/chat/send', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            patient_id: currentPatientId,
+                            doctor_id: doctorId,
+                            message: `📋 Prescription: ${prescriptionText}`,
+                            sender_type: 'doctor'
+                        })
+                    });
+                    
+                    loadMessages();
+                    loadPatients();
+                    alert('{{ t(lang, "prescription_sent") }}');
+                } else {
+                    alert('{{ t(lang, "error_sending") }}');
+                }
+            } catch (error) {
+                console.error('Error sending prescription:', error);
+                alert('{{ t(lang, "error_sending") }}');
+            }
+        }
+
+        function refreshPatients() {
+            loadPatients();
+            if (currentPatientId) {
+                loadMessages();
+            }
+        }
+
+        // Allow Enter key to send message
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Auto-resize textarea
+        document.getElementById('messageInput').addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+        });
+
+        // Auto-refresh messages every 3 seconds when a patient is selected
+        setInterval(() => {
+            if (currentPatientId) {
+                loadMessages();
+            }
+        }, 3000);
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPatients();
+        });
+    </script>
+</body>
+</html>

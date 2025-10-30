@@ -1,0 +1,291 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ t(lang, 'patient_queue') }} - Healthcare Kiosk</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            animation: slideIn 0.8s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .language-selector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .lang-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .lang-btn:hover, .lang-btn.active {
+            background: white;
+            color: #2c3e50;
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .queue-section {
+            padding: 40px;
+            text-align: center;
+        }
+
+        .queue-status {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 4px solid #3498db;
+        }
+
+        .status-indicator {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+
+        .position-display {
+            font-size: 4em;
+            font-weight: bold;
+            color: #3498db;
+            margin: 20px 0;
+        }
+
+        .wait-time {
+            font-size: 1.2em;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+
+        .queue-info {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #219a52;
+        }
+
+        .refresh-btn {
+            background: #f39c12;
+            color: white;
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .queue-section {
+                padding: 20px;
+            }
+            
+            .position-display {
+                font-size: 3em;
+            }
+            
+            .language-selector {
+                position: relative;
+                top: 0;
+                right: 0;
+                justify-content: center;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="language-selector">
+                <button class="lang-btn {{ 'active' if lang == 'en' else '' }}" onclick="setLanguage('en')">English</button>
+                <button class="lang-btn {{ 'active' if lang == 'hi' else '' }}" onclick="setLanguage('hi')">हिंदी</button>
+                <button class="lang-btn {{ 'active' if lang == 'kn' else '' }}" onclick="setLanguage('kn')">ಕನ್ನಡ</button>
+            </div>
+            <a href="/" class="back-btn">← {{ t(lang, 'back') }}</a>
+            <h1>⏱️ {{ t(lang, 'patient_queue') }}</h1>
+            <div style="opacity: 0.8;">{{ t(lang, 'patient_queue') }}</div>
+        </div>
+
+        <div class="queue-section">
+            <div class="queue-status">
+                <div class="status-indicator" id="statusIndicator">⏳</div>
+                <h2 id="statusText">{{ t(lang, 'please_wait') }}</h2>
+                
+                <div class="position-display" id="positionDisplay">0</div>
+                <div class="wait-time" id="waitTime">{{ t(lang, 'please_wait') }}</div>
+                
+                <div class="queue-info">
+                    <p><strong>{{ t(lang, 'patients_ahead') }}:</strong> <span id="totalPatients">0</span></p>
+                    <p><strong>{{ t(lang, 'estimated_wait') }}:</strong> <span id="estimatedWait">0</span> {{ t(lang, 'minutes') }}</p>
+                </div>
+            </div>
+
+            <button class="btn refresh-btn" onclick="loadQueueStatus()">
+                🔄 {{ t(lang, 'refresh') }}
+            </button>
+
+            <div style="margin-top: 30px;">
+                <a href="/patient/chat" class="btn btn-primary">
+                    💬 {{ t(lang, 'chat_with_doctor') }}
+                </a>
+                <a href="/patient/form" class="btn btn-success">
+                    📋 {{ t(lang, 'health_assessment') }}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setLanguage(lang) {
+            window.location.href = `/set_language/${lang}`;
+        }
+
+        async function loadQueueStatus() {
+            try {
+                const response = await fetch('/api/patient/queue');
+                const data = await response.json();
+
+                const position = data.your_position;
+                const totalPatients = data.total_patients;
+                const waitTime = data.wait_time;
+
+                document.getElementById('positionDisplay').textContent = position;
+                document.getElementById('totalPatients').textContent = totalPatients;
+                document.getElementById('estimatedWait').textContent = waitTime;
+                document.getElementById('waitTime').textContent = `{{ t(lang, 'estimated_wait') }}: ${waitTime} {{ t(lang, 'minutes') }}`;
+
+                // Update status based on position
+                const statusIndicator = document.getElementById('statusIndicator');
+                const statusText = document.getElementById('statusText');
+
+                if (position === 0) {
+                    statusIndicator.textContent = '🎉';
+                    statusIndicator.className = 'status-indicator pulse';
+                    statusText.textContent = '{{ t(lang, 'your_turn') }}';
+                } else if (position === 1) {
+                    statusIndicator.textContent = '👆';
+                    statusIndicator.className = 'status-indicator pulse';
+                    statusText.textContent = '{{ t(lang, 'you_are_next') }}';
+                } else {
+                    statusIndicator.textContent = '⏳';
+                    statusIndicator.className = 'status-indicator';
+                    statusText.textContent = '{{ t(lang, 'please_wait') }}';
+                }
+
+            } catch (error) {
+                console.error('Error loading queue status:', error);
+                document.getElementById('statusText').textContent = '{{ t(lang, 'error') }}';
+            }
+        }
+
+        // Load queue status every 30 seconds
+        setInterval(loadQueueStatus, 30000);
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadQueueStatus();
+        });
+    </script>
+</body>
+</html>
