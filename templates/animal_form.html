@@ -4,176 +4,207 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ t('animal_form') }} - {{ t('health_kiosk') }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .card {
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            border: none;
-        }
-        .header-bg {
-            background: linear-gradient(45deg, #28a745, #20c997);
-            color: white;
-            border-radius: 15px 15px 0 0;
-        }
-        .btn-submit {
-            background: linear-gradient(45deg, #28a745, #20c997);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            font-size: 1.1em;
-            border-radius: 10px;
-        }
-        .btn-submit:hover {
-            background: linear-gradient(45deg, #218838, #1e9e8a);
-            color: white;
-        }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body>
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-10">
-                <div class="card">
-                    <div class="card-header header-bg text-center">
-                        <h3 class="mb-0"><i class="fas fa-paw me-2"></i>{{ t('animal_form') }}</h3>
-                    </div>
-                    <div class="card-body">
-                        {% if error %}
-                        <div class="alert alert-danger">
-                            {{ error }}
-                        </div>
-                        {% endif %}
-                        
-                        {% if message %}
-                        <div class="alert alert-success">
-                            {{ message }}
-                            {% if animal_id %}
-                            <br><strong>Your Animal ID: {{ animal_id }}</strong>
-                            <div class="mt-3">
-                                <a href="/animal/health/view/{{ animal_id }}" class="btn btn-success me-2">
-                                    <i class="fas fa-file-medical me-2"></i>{{ t('view_prescription') }}
-                                </a>
-                                <a href="/animal/health/status" class="btn btn-info me-2">
-                                    <i class="fas fa-search me-2"></i>{{ t('check_prescription_status') }}
-                                </a>
-                                <a href="/animal/health" class="btn btn-warning">
-                                    <i class="fas fa-plus me-2"></i>Submit Another Form
-                                </a>
-                            </div>
-                            {% endif %}
-                        </div>
-                        {% endif %}
+<body class="bg-gradient-to-br from-green-50 to-emerald-50 min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-4xl bg-white p-8 rounded-3xl shadow-xl border border-green-100">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-green-800">
+                <i class="fas fa-paw mr-2"></i>Animal Health Form
+            </h1>
+            <p class="text-gray-600 mt-2">Please fill all the details carefully for your animal</p>
+        </div>
 
-                        <form method="POST" action="/animal/health/submit">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">{{ t('owner_name') }} *</label>
-                                    <input type="text" class="form-control" name="owner_name" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">{{ t('animal_type') }} *</label>
-                                    <select class="form-control" name="animal_type" required>
-                                        <option value="">{{ t('select_animal_type') }}</option>
-                                        <option value="cow">Cow</option>
-                                        <option value="buffalo">Buffalo</option>
-                                        <option value="goat">Goat</option>
-                                        <option value="sheep">Sheep</option>
-                                        <option value="dog">Dog</option>
-                                        <option value="cat">Cat</option>
-                                        <option value="horse">Horse</option>
-                                        <option value="poultry">Poultry</option>
-                                        <option value="other">Other</option>
-                                    </select>
-                                </div>
-                            </div>
+        {% if error %}
+            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                <strong>Attention:</strong> {{ error }}
+            </div>
+        {% endif %}
 
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">{{ t('animal_name') }} *</label>
-                                    <input type="text" class="form-control" name="animal_name" required>
-                                </div>
-                                <div class="col-md-3 mb-3">
-                                    <label class="form-label">{{ t('gender') }} *</label>
-                                    <select class="form-control" name="gender" required>
-                                        <option value="">{{ t('select_gender') }}</option>
-                                        <option value="male">{{ t('male') }}</option>
-                                        <option value="female">{{ t('female') }}</option>
-                                        <option value="other">{{ t('other') }}</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3 mb-3">
-                                    <label class="form-label">{{ t('breed') }} *</label>
-                                    <input type="text" class="form-control" name="breed" required>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">{{ t('condition') }} *</label>
-                                    <select class="form-control" name="condition" required>
-                                        <option value="">{{ t('select_condition') }}</option>
-                                        <option value="healthy">Healthy</option>
-                                        <option value="sick">Sick</option>
-                                        <option value="injured">Injured</option>
-                                        <option value="pregnant">Pregnant</option>
-                                        <option value="post_surgery">Post Surgery</option>
-                                        <option value="chronic">Chronic Condition</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">{{ t('age') }} *</label>
-                                    <input type="text" class="form-control" name="age" placeholder="e.g., 2 years" required>
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">{{ t('weight') }} *</label>
-                                    <input type="text" class="form-control" name="weight" required>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">{{ t('village') }} *</label>
-                                    <input type="text" class="form-control" name="village" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">{{ t('contact') }}</label>
-                                    <input type="text" class="form-control" name="contact">
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">{{ t('symptoms') }} *</label>
-                                <textarea class="form-control" name="symptoms" rows="4" placeholder="{{ t('describe_symptoms') }}" required></textarea>
-                            </div>
-
-                            <div class="text-center">
-                                <button type="submit" class="btn btn-submit">
-                                    <i class="fas fa-paper-plane me-2"></i>{{ t('submit_animal_form') }}
-                                </button>
-                            </div>
-                        </form>
-
-                        <div class="text-center mt-4">
-                            <a href="/animal/health/status" class="btn btn-outline-primary me-2">
-                                <i class="fas fa-search me-2"></i>{{ t('check_prescription_status') }}
-                            </a>
-                            <a href="/patient/welcome" class="btn btn-outline-secondary">
-                                <i class="fas fa-home me-2"></i>{{ t('back_to_home') }}
-                            </a>
-                        </div>
+        {% if message %}
+            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded">
+                <i class="fas fa-check-circle mr-2"></i>
+                <strong>Success!</strong> {{ message }}<br>
+                <div class="mt-2 p-3 bg-white rounded border">
+                    <strong>Your Animal ID:</strong> 
+                    <span class="font-mono text-green-700 bg-green-50 px-2 py-1 rounded">{{ animal_id }}</span><br>
+                    <div class="mt-3 flex gap-2 flex-wrap">
+                        <a class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition" 
+                           href="/animal/health/view/{{ animal_id }}">
+                            <i class="fas fa-file-medical mr-2"></i>View Prescription
+                        </a>
+                        <a class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition" 
+                           href="/animal/health/status">
+                            <i class="fas fa-search mr-2"></i>Check Prescription Status
+                        </a>
+                        <a class="inline-flex items-center px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition" 
+                           href="/animal/health">
+                            <i class="fas fa-plus mr-2"></i>Submit Another Form
+                        </a>
                     </div>
                 </div>
             </div>
+        {% endif %}
+
+        <form method="POST" action="/animal/health/submit" class="space-y-6">
+            <!-- Owner and Animal Type -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-user text-green-500 mr-1"></i>Owner Name *
+                    </label>
+                    <input required name="owner_name" placeholder="Enter owner's full name" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-paw text-green-500 mr-1"></i>Animal Type *
+                    </label>
+                    <select required name="animal_type" 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition">
+                        <option value="">Select Animal Type</option>
+                        <option value="cow">Cow</option>
+                        <option value="buffalo">Buffalo</option>
+                        <option value="goat">Goat</option>
+                        <option value="sheep">Sheep</option>
+                        <option value="dog">Dog</option>
+                        <option value="cat">Cat</option>
+                        <option value="horse">Horse</option>
+                        <option value="poultry">Poultry</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Animal Name, Gender, and Breed -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-tag text-green-500 mr-1"></i>Animal Name *
+                    </label>
+                    <input required name="animal_name" placeholder="Enter animal's name" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-venus-mars text-green-500 mr-1"></i>Gender *
+                    </label>
+                    <select required name="gender" 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition">
+                        <option value="">Select Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-dna text-green-500 mr-1"></i>Breed *
+                    </label>
+                    <input required name="breed" placeholder="Enter breed" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition">
+                </div>
+            </div>
+
+            <!-- Condition, Age, and Weight -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-heartbeat text-green-500 mr-1"></i>Condition *
+                    </label>
+                    <select required name="condition" 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition">
+                        <option value="">Select Condition</option>
+                        <option value="healthy">Healthy</option>
+                        <option value="sick">Sick</option>
+                        <option value="injured">Injured</option>
+                        <option value="pregnant">Pregnant</option>
+                        <option value="post_surgery">Post Surgery</option>
+                        <option value="chronic">Chronic Condition</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-calendar-alt text-green-500 mr-1"></i>Age *
+                    </label>
+                    <input required name="age" placeholder="e.g., 2 years" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-weight text-green-500 mr-1"></i>Weight *
+                    </label>
+                    <input required name="weight" placeholder="Weight in kg" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition">
+                </div>
+            </div>
+
+            <!-- Village and Contact -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-map-marker-alt text-green-500 mr-1"></i>Village *
+                    </label>
+                    <input required name="village" placeholder="Enter village name" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-phone text-green-500 mr-1"></i>Contact Number
+                    </label>
+                    <input name="contact" placeholder="Enter contact number" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition">
+                </div>
+            </div>
+
+            <!-- Symptoms -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-stethoscope text-green-500 mr-1"></i>Symptoms / How the animal feels *
+                </label>
+                <textarea required name="symptoms" rows="4" placeholder="Describe the animal's symptoms in detail..." 
+                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"></textarea>
+            </div>
+
+            <button type="submit" class="w-full bg-gradient-to-r from-green-600 to-teal-600 text-white py-3 rounded-lg font-bold text-lg hover:from-green-700 hover:to-teal-700 transition duration-300 shadow-lg">
+                <i class="fas fa-paper-plane mr-2"></i>Send to Veterinarian
+            </button>
+        </form>
+        
+        <div class="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+            <p class="text-sm text-yellow-700 flex items-start">
+                <i class="fas fa-exclamation-circle mr-2 mt-0.5"></i>
+                <span><strong>Important:</strong> All fields marked with * are required. Please provide accurate information for proper diagnosis.</span>
+            </p>
+        </div>
+
+        <div class="mt-6 flex gap-4 justify-center">
+            <a href="/animal/health/status" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                <i class="fas fa-search mr-2"></i>Check Prescription Status
+            </a>
+            <a href="/patient/welcome" class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
+                <i class="fas fa-home mr-2"></i>Back to Home
+            </a>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- REAL-TIME NOTIFICATIONS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        var socket = io();
+        
+        socket.on('animal_prescription_notification', function(data) {
+            alert("🎉 PRESCRIPTION READY!\nDr. " + data.veterinarian_name + " has sent prescription for " + data.animal_name + "!\n\nClick OK to view it.");
+            window.location.href = "/animal/health/view/" + data.animal_id;
+        });
+    </script>
 </body>
 </html>
