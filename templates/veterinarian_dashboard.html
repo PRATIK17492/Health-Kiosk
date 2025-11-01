@@ -37,7 +37,7 @@
             </div>
             <div class="flex items-center space-x-4">
                 <span class="bg-green-500 px-3 py-1 rounded-full text-sm">
-                    <i class="fas fa-paw mr-1"></i>{{ animals|length }} Animals
+                    <i class="fas fa-paw mr-1"></i><span id="animal-count">{{ animals|length }}</span> Animals
                 </span>
                 <div class="flex items-center space-x-2">
                     <button onclick="showSection('records')" class="bg-blue-500 text-white px-3 py-1 rounded-full text-sm hover:bg-blue-600 transition">
@@ -74,6 +74,25 @@
     <div class="max-w-7xl mx-auto px-6 pb-6">
         <!-- Dashboard Section (Default) -->
         <div id="dashboard" class="section-active">
+            <!-- Debug Information -->
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4 rounded">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-bug text-yellow-400"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-yellow-800">
+                            System Information
+                        </h3>
+                        <div class="mt-2 text-sm text-yellow-700">
+                            <p>Total animals in system: <strong>{{ animals|length }}</strong></p>
+                            <p>Search query: "<strong>{{ search_query }}</strong>"</p>
+                            <p>Last updated: <span id="last-updated">{{ now }}</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Search and Controls -->
             <div class="mb-6 bg-white p-4 rounded-xl shadow-lg">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -97,12 +116,14 @@
                     </div>
                     
                     <div class="flex gap-2">
-                        <!-- Fixed URL - using animal_health instead of animal -->
                         <a href="{{ url_for('animal_health') }}" class="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition">
                             <i class="fas fa-plus mr-1"></i>New Animal
                         </a>
-                        <button onclick="confirmClear()" class="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition">
-                            <i class="fas fa-trash mr-1"></i>Clear All
+                        <button onclick="confirmClearAnimals()" class="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition">
+                            <i class="fas fa-trash mr-1"></i>Clear All Animals
+                        </button>
+                        <button onclick="refreshDashboard()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition">
+                            <i class="fas fa-sync-alt mr-1"></i>Refresh
                         </button>
                     </div>
                 </div>
@@ -118,8 +139,9 @@
             <h2 class="text-2xl font-bold text-gray-800 mb-4">Animal Submissions</h2>
 
             {% if animals %}
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {% for aid, adata in animals.items() %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="animals-container">
+                    <!-- Reverse the order to show latest first -->
+                    {% for aid, adata in animals.items() | reverse %}
                         <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition duration-300">
                             <div class="flex justify-between items-start mb-4">
                                 <div>
@@ -145,10 +167,10 @@
                                     </p>
                                 </div>
                                 <div class="flex flex-col gap-2">
-                                    <!-- Fixed URL for veterinarian animal page -->
                                     <a href="{{ url_for('veterinarian_animal', animal_id=aid) }}" 
                                        class="bg-gradient-to-r from-green-500 to-teal-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-green-600 hover:to-teal-600 transition text-center">
-                                        <i class="fas fa-stethoscope mr-1"></i>Prescribe
+                                        <i class="fas fa-stethoscope mr-1"></i>
+                                        {% if adata.status == 'prescribed' %}Update{% else %}Prescribe{% endif %}
                                     </a>
                                     <button onclick="startChatWithOwner('{{ aid }}')" 
                                             class="bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-purple-600 hover:to-indigo-600 transition">
@@ -191,7 +213,7 @@
                     {% endfor %}
                 </div>
             {% else %}
-                <div class="text-center py-12 bg-white rounded-xl shadow-lg">
+                <div class="text-center py-12 bg-white rounded-xl shadow-lg" id="no-animals-message">
                     <i class="fas fa-{% if search_query %}search{% else %}paw{% endif %} text-4xl text-gray-300 mb-4"></i>
                     <h3 class="text-xl font-semibold text-gray-600">
                         {% if search_query %}No animals found{% else %}No animals yet{% endif %}
@@ -200,7 +222,7 @@
                         {% if search_query %}
                             Try a different search term or <a href="{{ url_for('veterinarian_dashboard') }}" class="text-green-600">view all animals</a>
                         {% else %}
-                            Animal submissions will appear here
+                            Animal submissions will appear here. New animal forms will show up automatically.
                         {% endif %}
                     </p>
                 </div>
@@ -279,7 +301,13 @@
         </div>
     </div>
 
+    <!-- Socket.IO for real-time updates -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script>
+        // Global variables
+        let currentSection = 'dashboard';
+        let socket = null;
+
         class VeterinarianDashboard {
             constructor() {
                 this.currentChatOwner = null;
@@ -287,13 +315,81 @@
             }
 
             init() {
+                this.connectSocket();
                 this.loadVeterinarianRecords();
                 this.loadChatOwners();
+                
+                // Auto-refresh every 30 seconds
                 setInterval(() => {
+                    if (currentSection === 'dashboard') {
+                        this.refreshAnimalList();
+                    }
                     if (this.currentChatOwner) {
                         this.loadChatMessages(this.currentChatOwner);
                     }
-                }, 10000);
+                }, 30000);
+            }
+
+            connectSocket() {
+                socket = io();
+                
+                socket.on('connect', function() {
+                    console.log('🔌 Connected to server');
+                    socket.emit('join_veterinarians_room');
+                });
+
+                socket.on('new_animal_patient_notification', (data) => {
+                    console.log('🆕 New animal notification:', data);
+                    this.showNewAnimalNotification(data);
+                    this.refreshAnimalList();
+                });
+
+                socket.on('new_animal_patient_alert', (data) => {
+                    console.log('🐾 New animal alert:', data);
+                    this.showNewAnimalNotification(data);
+                    this.refreshAnimalList();
+                });
+            }
+
+            showNewAnimalNotification(data) {
+                // Create notification
+                const notification = document.createElement('div');
+                notification.className = 'fixed top-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50 animate-bounce';
+                notification.innerHTML = `
+                    <div class="flex items-center">
+                        <i class="fas fa-paw mr-2"></i>
+                        <div>
+                            <strong>New Animal Patient!</strong>
+                            <div class="text-sm">${data.animal_name} (${data.animal_type})</div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(notification);
+
+                // Remove notification after 5 seconds
+                setTimeout(() => {
+                    notification.remove();
+                }, 5000);
+
+                // Update animal count
+                this.updateAnimalCount();
+            }
+
+            async refreshAnimalList() {
+                try {
+                    window.location.reload();
+                } catch (error) {
+                    console.error('Error refreshing animal list:', error);
+                }
+            }
+
+            updateAnimalCount() {
+                // This would ideally come from the server, but for now we'll increment
+                const countElement = document.getElementById('animal-count');
+                if (countElement) {
+                    const currentCount = parseInt(countElement.textContent) || 0;
+                    countElement.textContent = currentCount + 1;
+                }
             }
 
             async loadVeterinarianRecords() {
@@ -547,6 +643,8 @@
         }
 
         function showSection(sectionName) {
+            currentSection = sectionName;
+            
             // Hide all sections
             document.querySelectorAll('#dashboard, #records, #chat').forEach(section => {
                 section.classList.remove('section-active');
@@ -567,6 +665,10 @@
             document.getElementById(`nav-${sectionName}`).classList.remove('text-gray-700', 'hover:bg-gray-100');
         }
 
+        function refreshDashboard() {
+            window.location.reload();
+        }
+
         function loadVeterinarianRecords() {
             window.veterinarianDashboard.loadVeterinarianRecords();
         }
@@ -583,9 +685,10 @@
             window.veterinarianDashboard.sendChatMessage();
         }
 
-        function confirmClear() {
+        // FIXED: Clear animals function
+        function confirmClearAnimals() {
             if (confirm('Are you sure you want to clear ALL animal data? This action cannot be undone!')) {
-                fetch('/api/doctor/clear', {
+                fetch('/api/veterinarian/clear', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -593,7 +696,11 @@
                 }).then(response => {
                     if (response.ok) {
                         window.location.reload();
+                    } else {
+                        alert('Error clearing animal data');
                     }
+                }).catch(error => {
+                    alert('Network error: ' + error);
                 });
             }
         }
@@ -609,6 +716,9 @@
                     }
                 });
             }
+
+            // Update last updated time
+            document.getElementById('last-updated').textContent = new Date().toLocaleString();
         });
 
         // Initialize dashboard

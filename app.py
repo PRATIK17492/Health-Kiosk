@@ -368,7 +368,7 @@ LANGUAGES = {
         'camera_error': 'कैमरा एक्सेस अस्वीकृत या उपलब्ध नहीं',
         'error_sending_message': 'संदेश भेजने में त्रुटि',
         'error_sending_photo': 'फोटो भेजने में त्रुटि',
-        'network_error': 'नेटवर्क त्रुटि',
+        'network_error': 'नेट्वर्क त्रुटि',
         'no_messages': 'अभी तक कोई संदेश नहीं',
         'back': 'वापस',
         'patients': 'रोगी',
@@ -991,7 +991,7 @@ def doctor_chat():
                          doctor_name=session.get('doctor_name'),
                          lang=session.get('lang', 'en'))
 
-# Veterinarian-specific routes
+# Veterinarian-specific routes - FIXED ROUTES
 @app.route('/veterinarian/dashboard')
 def veterinarian_dashboard():
     if not session.get('doctor_logged_in'):
@@ -1017,7 +1017,8 @@ def veterinarian_dashboard():
     return render_template("veterinarian_dashboard.html", 
                          animals=animals_data, 
                          search_query=search_query,
-                         doctor_name=session.get('doctor_name'))
+                         doctor_name=session.get('doctor_name'),
+                         now=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
 @app.route('/veterinarian/animal/<animal_id>', methods=['GET', 'POST'])
 def veterinarian_animal(animal_id):
@@ -1502,6 +1503,19 @@ def clear_all_patients():
     
     patients_data = {}
     save_patients(patients_data)
+    return jsonify({'success': True})
+
+@app.route('/api/veterinarian/clear', methods=['POST'])
+def clear_all_animals():
+    if not session.get('doctor_logged_in'):
+        return jsonify({'error': 'Not authorized'}), 401
+    
+    # Check if doctor is a veterinarian
+    if session.get('doctor_type') != 'veterinarian':
+        return jsonify({'error': 'Not a veterinarian'}), 403
+    
+    animals_data = {}
+    save_animals(animals_data)
     return jsonify({'success': True})
 
 # Socket.IO Event Handlers
