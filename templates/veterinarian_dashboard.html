@@ -3,288 +3,616 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Veterinarian Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Veterinarian - Health Kiosk</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            padding: 20px;
-        }
-
-        .dashboard-container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .header-card {
-            background: white;
-            border-radius: 15px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            border-left: 4px solid #10b981;
-        }
-
-        .action-buttons {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .action-btn {
-            background: white;
-            border: none;
-            border-radius: 12px;
-            padding: 1.5rem;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            text-decoration: none;
-            color: inherit;
-        }
-
-        .action-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
-
-        .action-btn.patients {
-            border-top: 4px solid #10b981;
-        }
-
-        .action-btn.prescriptions {
-            border-top: 4px solid #3b82f6;
-        }
-
-        .action-btn.chat {
-            border-top: 4px solid #8b5cf6;
-        }
-
-        .action-btn.logout {
-            border-top: 4px solid #ef4444;
-        }
-
-        .btn-icon {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
+        .section-active {
             display: block;
         }
-
-        .search-box {
-            background: white;
-            border-radius: 15px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        .section-hidden {
+            display: none;
         }
-
-        .animal-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-            border-left: 4px solid #10b981;
-            transition: all 0.3s ease;
+        .nav-active {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
         }
-
-        .animal-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-        }
-
-        .status-badge {
-            padding: 0.4rem 1rem;
+        .animal-type-badge {
+            padding: 0.25rem 0.75rem;
             border-radius: 20px;
-            font-size: 0.8em;
+            font-size: 0.75em;
             font-weight: 600;
-        }
-
-        .btn-prescribe {
-            background: #10b981;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 0.5rem 1rem;
-            font-size: 0.9em;
-            transition: all 0.3s ease;
-        }
-
-        .btn-prescribe:hover {
-            background: #059669;
-            color: white;
-            transform: translateY(-1px);
-        }
-
-        .form-control {
-            border-radius: 10px;
-            padding: 0.75rem 1rem;
-            border: 2px solid #e2e8f0;
-        }
-
-        .form-control:focus {
-            border-color: #10b981;
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
-        }
-
-        @media (max-width: 768px) {
-            .action-buttons {
-                grid-template-columns: repeat(2, 1fr);
-            }
         }
     </style>
 </head>
-<body>
-    <div class="dashboard-container">
-        <!-- Header -->
-        <div class="header-card">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h2 class="mb-2">Welcome, Dr. {{ doctor_name }}! 🐾</h2>
-                    <p class="text-muted mb-0">Veterinarian Dashboard - Animal Patient Management</p>
-                </div>
-                <div class="col-md-4 text-end">
-                    <span class="badge bg-primary fs-6">
-                        Total Animals: {{ animals|length }}
-                    </span>
+<body class="bg-gradient-to-br from-gray-50 to-green-50 min-h-screen">
+    <nav class="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-4 shadow-lg">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-paw text-2xl"></i>
+                <div>
+                    <h1 class="text-xl font-bold">Veterinarian Dashboard</h1>
+                    <p class="text-green-100 text-sm">Welcome, Dr. {{ doctor_name }}</p>
                 </div>
             </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="action-buttons">
-            <a href="/veterinarian/dashboard" class="action-btn patients">
-                <i class="fas fa-paw btn-icon text-success"></i>
-                <h5 class="mb-1">Animal Patients</h5>
-                <small class="text-muted">Manage all animals</small>
-            </a>
-            
-            <a href="/api/doctor/records" class="action-btn prescriptions">
-                <i class="fas fa-prescription btn-icon text-primary"></i>
-                <h5 class="mb-1">Prescriptions</h5>
-                <small class="text-muted">View all records</small>
-            </a>
-            
-            <a href="/animal/chat" class="action-btn chat">
-                <i class="fas fa-comments btn-icon text-purple"></i>
-                <h5 class="mb-1">Animal Chat</h5>
-                <small class="text-muted">Chat with owners</small>
-            </a>
-            
-            <a href="/doctor/logout" class="action-btn logout">
-                <i class="fas fa-sign-out-alt btn-icon text-danger"></i>
-                <h5 class="mb-1">Logout</h5>
-                <small class="text-muted">End session</small>
-            </a>
-        </div>
-
-        <!-- Search Box -->
-        <div class="search-box">
-            <form class="row g-3 align-items-center">
-                <div class="col-md-10">
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0">
-                            <i class="fas fa-search text-muted"></i>
-                        </span>
-                        <input type="text" class="form-control border-start-0" name="search" 
-                               placeholder="Search by Animal ID, Name, Owner, Village, or Symptoms..." 
-                               value="{{ search_query }}">
-                    </div>
+            <div class="flex items-center space-x-4">
+                <span class="bg-green-500 px-3 py-1 rounded-full text-sm">
+                    <i class="fas fa-paw mr-1"></i>{{ animals|length }} Animals
+                </span>
+                <div class="flex items-center space-x-2">
+                    <button onclick="showSection('records')" class="bg-blue-500 text-white px-3 py-1 rounded-full text-sm hover:bg-blue-600 transition">
+                        <i class="fas fa-file-medical mr-1"></i>My Records
+                    </button>
+                    <button onclick="showSection('chat')" class="bg-purple-500 text-white px-3 py-1 rounded-full text-sm hover:bg-purple-600 transition">
+                        <i class="fas fa-comments mr-1"></i>Chat
+                    </button>
                 </div>
-                <div class="col-md-2">
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-success flex-fill">
-                            <i class="fas fa-search me-2"></i>Search
-                        </button>
-                        <a href="/veterinarian/dashboard" class="btn btn-outline-secondary">
-                            <i class="fas fa-refresh"></i>
-                        </a>
-                    </div>
-                </div>
-            </form>
+                <a href="{{ url_for('doctor_logout') }}" class="bg-white text-green-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition">
+                    <i class="fas fa-sign-out-alt mr-1"></i>Logout
+                </a>
+            </div>
         </div>
+    </nav>
 
-        <!-- Animal Patients List -->
-        <div class="row">
-            <div class="col-12">
-                <h4 class="mb-3">Animal Patients</h4>
-                
-                {% if animals %}
-                    {% for animal_id, animal_data in animals.items() %}
-                    <div class="animal-card">
-                        <div class="row align-items-center">
-                            <div class="col-md-8">
-                                <div class="d-flex align-items-center mb-2">
-                                    <h5 class="mb-0 me-3">{{ animal_data.animal_name }}</h5>
-                                    <span class="animal-type-badge bg-light text-dark me-2">
-                                        <i class="fas fa-paw me-1"></i>{{ animal_data.animal_type }}
-                                    </span>
-                                    <span class="status-badge {% if animal_data.status == 'prescribed' %}bg-success{% else %}bg-warning text-dark{% endif %}">
-                                        {{ animal_data.status|title }}
-                                    </span>
-                                </div>
-                                
-                                <div class="row text-sm">
-                                    <div class="col-sm-4">
-                                        <small class="text-muted">
-                                            <i class="fas fa-user me-1"></i><strong>Owner:</strong> {{ animal_data.owner_name }}
-                                        </small>
-                                    </div>
-                                    <div class="col-sm-4">
-                                        <small class="text-muted">
-                                            <i class="fas fa-map-marker-alt me-1"></i><strong>Village:</strong> {{ animal_data.village }}
-                                        </small>
-                                    </div>
-                                    <div class="col-sm-4">
-                                        <small class="text-muted">
-                                            <i class="fas fa-clock me-1"></i>{{ animal_data.submission_date }}
-                                        </small>
-                                    </div>
-                                </div>
-
-                                <div class="mt-2">
-                                    <small class="text-muted">
-                                        <strong>Symptoms:</strong> {{ animal_data.symptoms[:100] }}{% if animal_data.symptoms|length > 100 %}...{% endif %}
-                                    </small>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-4 text-end">
-                                <a href="/veterinarian/animal/{{ animal_id }}" class="btn btn-prescribe">
-                                    <i class="fas fa-stethoscope me-2"></i>
-                                    {% if animal_data.status == 'prescribed' %}Update{% else %}Prescribe{% endif %}
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="animal-card text-center py-4">
-                        <i class="fas fa-paw fa-3x text-muted mb-3"></i>
-                        <h5>No Animal Patients Found</h5>
-                        <p class="text-muted">
-                            {% if search_query %}
-                                No animal patients match your search criteria.
-                            {% else %}
-                                There are no animal patients waiting for consultation yet.
-                            {% endif %}
-                        </p>
-                        {% if search_query %}
-                            <a href="/veterinarian/dashboard" class="btn btn-success">
-                                <i class="fas fa-list me-2"></i>View All Animals
-                            </a>
-                        {% endif %}
-                    </div>
-                {% endif %}
+    <!-- Navigation Tabs -->
+    <div class="max-w-7xl mx-auto px-6 pt-6">
+        <div class="bg-white rounded-xl shadow-lg p-2 mb-6">
+            <div class="flex space-x-2">
+                <button id="nav-dashboard" onclick="showSection('dashboard')" class="nav-active flex-1 py-3 px-4 rounded-lg font-medium text-gray-700 hover:bg-gray-100 transition flex items-center justify-center">
+                    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                </button>
+                <button id="nav-records" onclick="showSection('records')" class="flex-1 py-3 px-4 rounded-lg font-medium text-gray-700 hover:bg-gray-100 transition flex items-center justify-center">
+                    <i class="fas fa-file-medical mr-2"></i>My Records
+                </button>
+                <button id="nav-chat" onclick="showSection('chat')" class="flex-1 py-3 px-4 rounded-lg font-medium text-gray-700 hover:bg-gray-100 transition flex items-center justify-center">
+                    <i class="fas fa-comments mr-2"></i>Chat with Owners
+                </button>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="max-w-7xl mx-auto px-6 pb-6">
+        <!-- Dashboard Section (Default) -->
+        <div id="dashboard" class="section-active">
+            <!-- Search and Controls -->
+            <div class="mb-6 bg-white p-4 rounded-xl shadow-lg">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div class="flex-1 w-full">
+                        <form method="GET" class="flex gap-2">
+                            <div class="relative flex-1">
+                                <input type="text" name="search" value="{{ search_query }}" 
+                                       placeholder="Search by animal name, owner, village, or symptoms..." 
+                                       class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                            </div>
+                            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+                                <i class="fas fa-search mr-1"></i>Search
+                            </button>
+                            {% if search_query %}
+                            <a href="{{ url_for('veterinarian_dashboard') }}" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition">
+                                <i class="fas fa-times mr-1"></i>Clear
+                            </a>
+                            {% endif %}
+                        </form>
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <a href="{{ url_for('animal') }}" class="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition">
+                            <i class="fas fa-plus mr-1"></i>New Animal
+                        </a>
+                        <button onclick="confirmClear()" class="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition">
+                            <i class="fas fa-trash mr-1"></i>Clear All
+                        </button>
+                    </div>
+                </div>
+                
+                {% if search_query %}
+                <div class="mt-3 text-sm text-green-600">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Showing results for "{{ search_query }}" - {{ animals|length }} animals found
+                </div>
+                {% endif %}
+            </div>
+
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Animal Submissions</h2>
+
+            {% if animals %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for aid, adata in animals.items() %}
+                        <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition duration-300">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="text-lg font-bold text-gray-800 flex items-center">
+                                        <i class="fas fa-paw text-green-500 mr-2"></i>
+                                        {{ adata.animal_name or "Unnamed" }}
+                                    </h3>
+                                    <div class="flex items-center mt-1">
+                                        <span class="animal-type-badge bg-green-100 text-green-800 mr-2">
+                                            {{ adata.animal_type or "Unknown" }}
+                                        </span>
+                                        <span class="status-badge {% if adata.status == 'prescribed' %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %} text-xs px-2 py-1 rounded-full">
+                                            {{ adata.status|title or "Pending" }}
+                                        </span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-1">
+                                        <i class="fas fa-id-card text-gray-400 mr-1"></i>
+                                        ID: <span class="font-mono text-xs bg-gray-100 px-2 py-1 rounded">{{ aid[:15] }}...</span>
+                                    </p>
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        <i class="fas fa-clock text-gray-400 mr-1"></i>
+                                        {{ adata.submission_date or "Unknown date" }}
+                                    </p>
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <a href="{{ url_for('veterinarian_animal', aid=aid) }}" 
+                                       class="bg-gradient-to-r from-green-500 to-teal-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-green-600 hover:to-teal-600 transition text-center">
+                                        <i class="fas fa-stethoscope mr-1"></i>Prescribe
+                                    </a>
+                                    <button onclick="startChatWithOwner('{{ aid }}')" 
+                                            class="bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-purple-600 hover:to-indigo-600 transition">
+                                        <i class="fas fa-comments mr-1"></i>Chat
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2 text-sm text-gray-700">
+                                <div class="flex justify-between">
+                                    <span><i class="fas fa-user text-gray-400 mr-2"></i>Owner</span>
+                                    <span class="font-medium">{{ adata.owner_name or "—" }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span><i class="fas fa-map-marker-alt text-gray-400 mr-2"></i>Village</span>
+                                    <span class="font-medium">{{ adata.village or "—" }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span><i class="fas fa-notes-medical text-gray-400 mr-2"></i>Condition</span>
+                                    <span class="font-medium">{{ adata.condition or "—" }}</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-4 border-t border-gray-100">
+                                <p class="text-sm text-gray-600"><strong>Symptoms:</strong> 
+                                    <span class="text-gray-800">{{ adata.symptoms[:80] }}{% if adata.symptoms|length > 80 %}...{% endif %}</span>
+                                </p>
+                                <p class="text-sm text-gray-600 mt-2">
+                                    <strong>Prescription:</strong> 
+                                    <span class="{% if adata.status == 'prescribed' %}text-green-600 font-medium{% else %}text-red-500{% endif %}">
+                                        {% if adata.status == 'prescribed' %}
+                                            <i class="fas fa-check-circle mr-1"></i>Provided
+                                        {% else %}
+                                            <i class="fas fa-clock mr-1"></i>Pending
+                                        {% endif %}
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-12 bg-white rounded-xl shadow-lg">
+                    <i class="fas fa-{% if search_query %}search{% else %}paw{% endif %} text-4xl text-gray-300 mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-600">
+                        {% if search_query %}No animals found{% else %}No animals yet{% endif %}
+                    </h3>
+                    <p class="text-gray-500 mt-2">
+                        {% if search_query %}
+                            Try a different search term or <a href="{{ url_for('veterinarian_dashboard') }}" class="text-green-600">view all animals</a>
+                        {% else %}
+                            Animal submissions will appear here
+                        {% endif %}
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Records Section -->
+        <div id="records" class="section-hidden">
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">My Prescription Records</h2>
+                    <button onclick="loadVeterinarianRecords()" class="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition">
+                        <i class="fas fa-sync-alt mr-1"></i>Refresh
+                    </button>
+                </div>
+
+                <div id="veterinarianRecords">
+                    <div class="text-center py-12">
+                        <i class="fas fa-file-medical text-4xl text-gray-300 mb-4"></i>
+                        <h3 class="text-xl font-semibold text-gray-600">Loading prescription records...</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Section -->
+        <div id="chat" class="section-hidden">
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Chat with Animal Owners</h2>
+                    <button onclick="loadChatOwners()" class="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition">
+                        <i class="fas fa-sync-alt mr-1"></i>Refresh
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="flex flex-col md:flex-row h-[600px]">
+                        <!-- Chat Sidebar -->
+                        <div class="w-full md:w-1/3 border-r border-gray-200">
+                            <div class="p-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white">
+                                <h3 class="font-bold">Active Animal Owners</h3>
+                            </div>
+                            <div id="chatOwnerList" class="overflow-y-auto h-[500px]">
+                                <div class="text-center py-12">
+                                    <i class="fas fa-users text-4xl text-gray-300 mb-4"></i>
+                                    <h3 class="text-xl font-semibold text-gray-600">Loading animal owners...</h3>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Chat Main Area -->
+                        <div class="flex-1 flex flex-col">
+                            <div class="p-4 border-b border-gray-200">
+                                <h3 id="currentChatOwner" class="font-bold text-gray-800">Select an animal owner to start chatting</h3>
+                            </div>
+                            <div id="chatMessages" class="flex-1 overflow-y-auto p-4 bg-gray-50">
+                                <div class="text-center py-12">
+                                    <i class="fas fa-comments text-4xl text-gray-300 mb-4"></i>
+                                    <h3 class="text-xl font-semibold text-gray-600">Please select an animal owner from the list to view messages</h3>
+                                </div>
+                            </div>
+                            <div id="chatInput" class="hidden p-4 border-t border-gray-200">
+                                <div class="flex gap-2">
+                                    <textarea id="messageInput" placeholder="Type your message..." 
+                                              class="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none" 
+                                              rows="1"></textarea>
+                                    <button onclick="sendChatMessage()" class="bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class VeterinarianDashboard {
+            constructor() {
+                this.currentChatOwner = null;
+                this.init();
+            }
+
+            init() {
+                this.loadVeterinarianRecords();
+                this.loadChatOwners();
+                setInterval(() => {
+                    if (this.currentChatOwner) {
+                        this.loadChatMessages(this.currentChatOwner);
+                    }
+                }, 10000);
+            }
+
+            async loadVeterinarianRecords() {
+                try {
+                    const response = await fetch('/api/veterinarian/records');
+                    if (!response.ok) throw new Error('Network error');
+                    
+                    const records = await response.json();
+                    this.renderVeterinarianRecords(records);
+                } catch (error) {
+                    document.getElementById('veterinarianRecords').innerHTML = `
+                        <div class="p-6 text-center">
+                            <div class="bg-red-50 text-red-700 p-4 rounded-lg">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                Failed to load prescription records. Please try again.
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            renderVeterinarianRecords(records) {
+                const container = document.getElementById('veterinarianRecords');
+                
+                if (!records || records.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-12">
+                            <i class="fas fa-file-medical text-4xl text-gray-300 mb-4"></i>
+                            <h3 class="text-xl font-semibold text-gray-600">No Prescription Records</h3>
+                            <p class="text-gray-500 mt-2">Your prescription records will appear here.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = `
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Animal ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Animal Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Village</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prescription Date</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                `;
+
+                records.forEach(record => {
+                    html += `
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${record.animal_id}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${record.animal_name}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${record.owner_name}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${record.village}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${new Date(record.prescription_date).toLocaleString()}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    Prescribed
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button class="text-green-600 hover:text-green-900 mr-3" onclick="window.veterinarianDashboard.viewPrescription('${record.id}')">
+                                    <i class="fas fa-eye mr-1"></i>View
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += `</tbody></table></div>`;
+                container.innerHTML = html;
+            }
+
+            async loadChatOwners() {
+                try {
+                    const response = await fetch('/api/veterinarian/chat-owners');
+                    if (!response.ok) throw new Error('Network error');
+                    
+                    const owners = await response.json();
+                    this.renderChatOwners(owners);
+                } catch (error) {
+                    document.getElementById('chatOwnerList').innerHTML = `
+                        <div class="p-4 text-center">
+                            <div class="bg-red-50 text-red-700 p-4 rounded-lg">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                Failed to load animal owners. Please try again.
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            renderChatOwners(owners) {
+                const container = document.getElementById('chatOwnerList');
+                
+                if (!owners || owners.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-12">
+                            <i class="fas fa-users text-4xl text-gray-300 mb-4"></i>
+                            <h3 class="text-xl font-semibold text-gray-600">No Chat Owners</h3>
+                            <p class="text-gray-500 mt-2">When animal owners send messages, they will appear here.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                owners.forEach(owner => {
+                    html += `
+                        <div class="p-4 border-b border-gray-200 hover:bg-gray-50 cursor-pointer" 
+                             onclick="window.veterinarianDashboard.selectChatOwner('${owner.animal_id}')" 
+                             id="chat-owner-${owner.animal_id}">
+                            <div class="font-bold text-gray-800">${owner.owner_name}</div>
+                            <div class="text-sm text-gray-600 mt-1">
+                                Animal: ${owner.animal_name} (${owner.animal_type})
+                                ${owner.village ? ` | Village: ${owner.village}` : ''}
+                            </div>
+                            <div class="text-xs text-gray-500 mt-2">
+                                Last activity: ${owner.last_message_time ? new Date(owner.last_message_time).toLocaleString() : 'No messages'}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+            }
+
+            selectChatOwner(animalId) {
+                this.currentChatOwner = animalId;
+                
+                document.querySelectorAll('#chatOwnerList > div').forEach(item => {
+                    item.classList.remove('bg-green-50');
+                });
+                document.getElementById(`chat-owner-${animalId}`).classList.add('bg-green-50');
+                
+                document.getElementById('currentChatOwner').textContent = `Chat with ${animalId}`;
+                document.getElementById('chatInput').classList.remove('hidden');
+                
+                this.loadChatMessages(animalId);
+            }
+
+            startChatWithOwner(animalId) {
+                showSection('chat');
+                setTimeout(() => {
+                    this.selectChatOwner(animalId);
+                }, 100);
+            }
+
+            async loadChatMessages(animalId) {
+                if (!animalId) return;
+                
+                try {
+                    const veterinarianId = '{{ session.get("veterinarian_id", "vet_pratik") }}';
+                    const response = await fetch(`/api/chat/messages/${animalId}/${veterinarianId}`);
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.renderChatMessages(result.messages);
+                    }
+                } catch (error) {
+                    console.error('Error loading messages:', error);
+                }
+            }
+
+            renderChatMessages(messages) {
+                const container = document.getElementById('chatMessages');
+                
+                if (!messages || messages.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-12">
+                            <i class="fas fa-comments text-4xl text-gray-300 mb-4"></i>
+                            <h3 class="text-xl font-semibold text-gray-600">No messages yet</h3>
+                            <p class="text-gray-500 mt-2">Start the conversation!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                messages.forEach(message => {
+                    const messageClass = message.sender_type === 'veterinarian' ? 
+                        'bg-green-600 text-white ml-auto' : 
+                        'bg-gray-200 text-gray-800 mr-auto';
+                    
+                    const senderName = message.sender_type === 'veterinarian' ? 'You' : 'Owner';
+                    
+                    html += `
+                        <div class="mb-4">
+                            <div class="max-w-xs md:max-w-md p-3 rounded-lg ${messageClass}">
+                                <div class="font-medium">${senderName}</div>
+                                <div class="mt-1">${message.content}</div>
+                                <div class="text-xs mt-2 opacity-70">
+                                    ${new Date(message.timestamp).toLocaleString()}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+                container.scrollTop = container.scrollHeight;
+            }
+
+            async sendChatMessage() {
+                if (!this.currentChatOwner) return;
+                
+                const messageInput = document.getElementById('messageInput');
+                const message = messageInput.value.trim();
+                
+                if (!message) return;
+                
+                try {
+                    const veterinarianId = '{{ session.get("veterinarian_id", "vet_pratik") }}';
+                    const response = await fetch('/api/chat/send', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            animal_id: this.currentChatOwner,
+                            veterinarian_id: veterinarianId,
+                            message: message,
+                            sender_type: 'veterinarian'
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        messageInput.value = '';
+                        this.loadChatMessages(this.currentChatOwner);
+                        this.loadChatOwners();
+                    } else {
+                        alert('Error sending message');
+                    }
+                } catch (error) {
+                    console.error('Error sending message:', error);
+                    alert('Network error. Please try again.');
+                }
+            }
+
+            viewPrescription(recordId) {
+                // Implementation for viewing prescription details
+                alert('View prescription: ' + recordId);
+            }
+        }
+
+        function showSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('#dashboard, #records, #chat').forEach(section => {
+                section.classList.remove('section-active');
+                section.classList.add('section-hidden');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionName).classList.remove('section-hidden');
+            document.getElementById(sectionName).classList.add('section-active');
+            
+            // Update navigation tabs
+            document.querySelectorAll('[id^="nav-"]').forEach(nav => {
+                nav.classList.remove('nav-active');
+                nav.classList.add('text-gray-700', 'hover:bg-gray-100');
+            });
+            
+            document.getElementById(`nav-${sectionName}`).classList.add('nav-active');
+            document.getElementById(`nav-${sectionName}`).classList.remove('text-gray-700', 'hover:bg-gray-100');
+        }
+
+        function loadVeterinarianRecords() {
+            window.veterinarianDashboard.loadVeterinarianRecords();
+        }
+
+        function loadChatOwners() {
+            window.veterinarianDashboard.loadChatOwners();
+        }
+
+        function startChatWithOwner(animalId) {
+            window.veterinarianDashboard.startChatWithOwner(animalId);
+        }
+
+        function sendChatMessage() {
+            window.veterinarianDashboard.sendChatMessage();
+        }
+
+        function confirmClear() {
+            if (confirm('Are you sure you want to clear ALL animal data? This action cannot be undone!')) {
+                fetch('/api/veterinarian/clear', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                }).then(response => {
+                    if (response.ok) {
+                        window.location.reload();
+                    }
+                });
+            }
+        }
+
+        // Allow Enter key to send message
+        document.addEventListener('DOMContentLoaded', () => {
+            const messageInput = document.getElementById('messageInput');
+            if (messageInput) {
+                messageInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendChatMessage();
+                    }
+                });
+            }
+        });
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            window.veterinarianDashboard = new VeterinarianDashboard();
+        });
+    </script>
 </body>
 </html>
