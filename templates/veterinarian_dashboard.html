@@ -97,7 +97,8 @@
                     </div>
                     
                     <div class="flex gap-2">
-                        <a href="{{ url_for('animal') }}" class="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition">
+                        <!-- Fixed URL - using animal_health instead of animal -->
+                        <a href="{{ url_for('animal_health') }}" class="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition">
                             <i class="fas fa-plus mr-1"></i>New Animal
                         </a>
                         <button onclick="confirmClear()" class="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition">
@@ -144,7 +145,8 @@
                                     </p>
                                 </div>
                                 <div class="flex flex-col gap-2">
-                                    <a href="{{ url_for('veterinarian_animal', aid=aid) }}" 
+                                    <!-- Fixed URL for veterinarian animal page -->
+                                    <a href="{{ url_for('veterinarian_animal', animal_id=aid) }}" 
                                        class="bg-gradient-to-r from-green-500 to-teal-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-green-600 hover:to-teal-600 transition text-center">
                                         <i class="fas fa-stethoscope mr-1"></i>Prescribe
                                     </a>
@@ -296,7 +298,7 @@
 
             async loadVeterinarianRecords() {
                 try {
-                    const response = await fetch('/api/veterinarian/records');
+                    const response = await fetch('/api/doctor/records');
                     if (!response.ok) throw new Error('Network error');
                     
                     const records = await response.json();
@@ -347,9 +349,9 @@
                 records.forEach(record => {
                     html += `
                         <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${record.animal_id}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${record.animal_name}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${record.owner_name}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${record.patient_id}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${record.patient_name}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${record.owner_name || 'N/A'}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${record.village}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${new Date(record.prescription_date).toLocaleString()}</td>
                             <td class="px-6 py-4 whitespace-nowrap">
@@ -372,7 +374,7 @@
 
             async loadChatOwners() {
                 try {
-                    const response = await fetch('/api/veterinarian/chat-owners');
+                    const response = await fetch('/api/veterinarian/chat-animals');
                     if (!response.ok) throw new Error('Network error');
                     
                     const owners = await response.json();
@@ -407,15 +409,15 @@
                 owners.forEach(owner => {
                     html += `
                         <div class="p-4 border-b border-gray-200 hover:bg-gray-50 cursor-pointer" 
-                             onclick="window.veterinarianDashboard.selectChatOwner('${owner.animal_id}')" 
-                             id="chat-owner-${owner.animal_id}">
-                            <div class="font-bold text-gray-800">${owner.owner_name}</div>
+                             onclick="window.veterinarianDashboard.selectChatOwner('${owner.id}')" 
+                             id="chat-owner-${owner.id}">
+                            <div class="font-bold text-gray-800">${owner.name}</div>
                             <div class="text-sm text-gray-600 mt-1">
-                                Animal: ${owner.animal_name} (${owner.animal_type})
+                                ${owner.type === 'animal' ? 'Animal Patient' : 'Human Patient'}
                                 ${owner.village ? ` | Village: ${owner.village}` : ''}
                             </div>
                             <div class="text-xs text-gray-500 mt-2">
-                                Last activity: ${owner.last_message_time ? new Date(owner.last_message_time).toLocaleString() : 'No messages'}
+                                Last message: ${owner.last_message ? owner.last_message.substring(0, 50) + '...' : 'No messages yet'}
                             </div>
                         </div>
                     `;
@@ -449,7 +451,7 @@
                 if (!animalId) return;
                 
                 try {
-                    const veterinarianId = '{{ session.get("veterinarian_id", "vet_pratik") }}';
+                    const veterinarianId = '{{ session.get("doctor_id", "doc_shreyas") }}';
                     const response = await fetch(`/api/chat/messages/${animalId}/${veterinarianId}`);
                     const result = await response.json();
                     
@@ -477,11 +479,11 @@
 
                 let html = '';
                 messages.forEach(message => {
-                    const messageClass = message.sender_type === 'veterinarian' ? 
+                    const messageClass = message.sender_type === 'veterinarian' || message.sender_type === 'doctor' ? 
                         'bg-green-600 text-white ml-auto' : 
                         'bg-gray-200 text-gray-800 mr-auto';
                     
-                    const senderName = message.sender_type === 'veterinarian' ? 'You' : 'Owner';
+                    const senderName = (message.sender_type === 'veterinarian' || message.sender_type === 'doctor') ? 'You' : 'Owner';
                     
                     html += `
                         <div class="mb-4">
@@ -509,17 +511,17 @@
                 if (!message) return;
                 
                 try {
-                    const veterinarianId = '{{ session.get("veterinarian_id", "vet_pratik") }}';
+                    const veterinarianId = '{{ session.get("doctor_id", "doc_shreyas") }}';
                     const response = await fetch('/api/chat/send', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
-                            animal_id: this.currentChatOwner,
-                            veterinarian_id: veterinarianId,
+                            patient_id: this.currentChatOwner,
+                            doctor_id: veterinarianId,
                             message: message,
-                            sender_type: 'veterinarian'
+                            sender_type: 'doctor'
                         })
                     });
                     
@@ -583,7 +585,7 @@
 
         function confirmClear() {
             if (confirm('Are you sure you want to clear ALL animal data? This action cannot be undone!')) {
-                fetch('/api/veterinarian/clear', {
+                fetch('/api/doctor/clear', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
