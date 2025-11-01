@@ -458,7 +458,80 @@
         let currentPatientType = null;
         let stream = null;
         let capturedPhoto = null;
-
+        let currentChatRoom = null;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeDoctorSocket();
+    });
+    
+    function initializeDoctorSocket() {
+        const doctorId = '{{ session.get("doctor_id", "") }}';
+        
+        // Join doctor room
+        socket.emit('join_doctor_room', { doctor_id: doctorId });
+        socket.emit('join_doctors_room');
+        
+        // Listen for new patients
+        socket.on('new_patient_alert', function(data) {
+            showNotification(`🆕 New patient: ${data.patient_name}`, 'info');
+            refreshPatients(); // Refresh patient list
+        });
+        
+        socket.on('new_animal_patient_alert', function(data) {
+            showNotification(`🐾 New animal patient: ${data.animal_name}`, 'info');
+            refreshPatients();
+        });
+        
+        // Message handling
+        socket.on('new_message', function(data) {
+            if (data.doctor_id === doctorId && data.patient_id === currentPatientId) {
+                displayNewMessage(data);
+                scrollToBottom();
+            }
+        });
+        
+        socket.on('message_notification', function(data) {
+            if (data.doctor_id === doctorId) {
+                // Update patient list to show new message
+                refreshPatients();
+            }
+        });
+    }
+    
+    function joinChatRoom(patientId) {
+        const doctorId = '{{ session.get("doctor_id", "") }}';
+        
+        if (currentChatRoom) {
+            socket.emit('leave_room', { room: currentChatRoom });
+        }
+        
+        currentChatRoom = `chat_${patientId}_${doctorId}`;
+        socket.emit('join_chat_room', {
+            patient_id: patientId,
+            doctor_id: doctorId
+        });
+    }
+    
+    function sendMessageRealTime(message, imageData = null) {
+        const doctorId = '{{ session.get("doctor_id", "") }}';
+        
+        const messageData = {
+            patient_id: currentPatientId,
+            doctor_id: doctorId,
+            message: message,
+            sender_type: 'doctor',
+            image_data: imageData
+        };
+        
+        socket.emit('send_message', messageData);
+        
+        fetch('/api/chat/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(messageData)
+        }).catch(console.error);
+    }
+ 
         function setLanguage(lang) {
             window.location.href = `/set_language/${lang}`;
         }

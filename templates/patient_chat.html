@@ -347,7 +347,164 @@
         let selectedDoctorId = null;
         let patientId = null;
         let refreshInterval = null;
-
+         let currentChatRoom = null;
+    
+    // Initialize socket when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeSocket();
+    });
+    
+    function initializeSocket() {
+        // Join patient room if patient ID is available
+        if (patientId) {
+            socket.emit('join_patient_room', { patient_id: patientId });
+        }
+        
+        // Listen for new messages
+        socket.on('new_message', function(data) {
+            if (data.patient_id === patientId && data.doctor_id === selectedDoctorId) {
+                displayNewMessage(data);
+                scrollToBottom();
+            }
+        });
+        
+        // Listen for message notifications
+        socket.on('message_notification', function(data) {
+            if (data.patient_id === patientId) {
+                showNotification(`New message from doctor`);
+            }
+        });
+        
+        // Listen for prescription notifications
+        socket.on('prescription_ready', function(data) {
+            if (data.patient_id === patientId) {
+                showNotification(`📝 Your prescription is ready!`, 'success');
+            }
+        });
+        
+        // Typing indicators
+        socket.on('user_typing', function(data) {
+            if (data.patient_id === patientId && data.doctor_id === selectedDoctorId) {
+                showTypingIndicator(data.sender_type, data.typing);
+            }
+        });
+    }
+    
+    function joinChatRoom(patientId, doctorId) {
+        if (currentChatRoom) {
+            socket.emit('leave_room', { room: currentChatRoom });
+        }
+        
+        currentChatRoom = `chat_${patientId}_${doctorId}`;
+        socket.emit('join_chat_room', {
+            patient_id: patientId,
+            doctor_id: doctorId
+        });
+    }
+    
+    function sendMessageRealTime(message, imageData = null) {
+        if (!selectedDoctorId || !patientId) return;
+        
+        const messageData = {
+            patient_id: patientId,
+            doctor_id: selectedDoctorId,
+            message: message,
+            sender_type: 'patient',
+            image_data: imageData
+        };
+        
+        // Send via Socket.IO for real-time delivery
+        socket.emit('send_message', messageData);
+        
+        // Also send via HTTP API for database persistence
+        fetch('/api/chat/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(messageData)
+        }).catch(console.error);
+    }
+    
+    function displayNewMessage(messageData) {
+        const container = document.getElementById('messagesContainer');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${messageData.sender_type}`;
+        
+        let content = `<div>${messageData.content}</div>`;
+        if (messageData.image_data) {
+            content += `<br><img src="data:image/jpeg;base64,${messageData.image_data}" class="image-message">`;
+        }
+        content += `<div class="message-time">${new Date().toLocaleString()}</div>`;
+        
+        messageDiv.innerHTML = content;
+        container.appendChild(messageDiv);
+    }
+    
+    // Typing indicators
+    let typingTimer;
+    document.getElementById('messageInput').addEventListener('input', function() {
+        socket.emit('typing_start', {
+            patient_id: patientId,
+            doctor_id: selectedDoctorId,
+            sender_type: 'patient'
+        });
+        
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(() => {
+            socket.emit('typing_stop', {
+                patient_id: patientId,
+                doctor_id: selectedDoctorId,
+                sender_type: 'patient'
+            });
+        }, 1000);
+    });
+    
+    function showTypingIndicator(senderType, isTyping) {
+        const indicator = document.getElementById('typingIndicator') || createTypingIndicator();
+        indicator.style.display = isTyping && senderType === 'doctor' ? 'block' : 'none';
+    }
+    
+    function createTypingIndicator() {
+        const indicator = document.createElement('div');
+        indicator.id = 'typingIndicator';
+        indicator.innerHTML = 'Doctor is typing...';
+        indicator.style.cssText = `
+            font-style: italic;
+            color: #666;
+            padding: 5px;
+            display: none;
+        `;
+        document.getElementById('messagesContainer').appendChild(indicator);
+        return indicator;
+    }
+    
+    function showNotification(message, type = 'info') {
+        // Create or use a notification system
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('Health Kiosk', { body: message });
+        } else {
+            // Fallback to browser alert or custom notification
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px;
+                background: ${type === 'success' ? '#d4edda' : '#fff3cd'};
+                border: 1px solid ${type === 'success' ? '#c3e6cb' : '#ffeaa7'};
+                border-radius: 5px;
+                z-index: 10000;
+            `;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 5000);
+        }
+    }
+    
+    // Request notification permission
+    if ('Notification' in window) {
+        Notification.requestPermission();
+    }
         function setLanguage(lang) {
             window.location.href = `/set_language/${lang}`;
         }

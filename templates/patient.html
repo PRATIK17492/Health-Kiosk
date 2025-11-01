@@ -28,9 +28,14 @@
         <div class="mt-2 p-3 bg-white rounded border">
           <strong>Your Patient ID:</strong> 
           <span class="font-mono text-blue-700 bg-blue-50 px-2 py-1 rounded">{{ pid }}</span><br>
-          <a class="inline-block mt-2 text-blue-600 hover:text-blue-800 font-medium" href="{{ url_for('patient_view', pid=pid) }}">
-            <i class="fas fa-file-medical mr-1"></i>View Prescription
-          </a>
+          <div class="mt-3 flex gap-2">
+            <a class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition" href="{{ url_for('patient_view', pid=pid) }}">
+              <i class="fas fa-file-medical mr-2"></i>View Prescription
+            </a>
+            <a class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition" href="/balance_diet">
+              <i class="fas fa-utensils mr-2"></i>Balance Diet
+            </a>
+          </div>
         </div>
       </div>
     {% endif %}
@@ -136,4 +141,4 @@
       });
   </script>
 </body>
-</html
+</html>

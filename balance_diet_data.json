@@ -1,0 +1,48 @@
+{
+  "diet_20251031231340": {
+    "diet_id": "diet_20251031231340",
+    "diet_type": "vegetarian",
+    "occupation": "school",
+    "age": "23",
+    "weight": "28",
+    "disease": "diabetes",
+    "diet_plan": [
+      {
+        "day": 1,
+        "breakfast": "Poha with vegetables + 1 glass milk",
+        "lunch": "1 cup Rice + 2 Roti + Dal + Vegetable Sabji + Salad + 1 bowl Curd",
+        "snacks": "Fruit salad + 1 handful nuts",
+        "dinner": "1 cup Rice + Dal + Vegetable Sabji + Salad"
+      },
+      {
+        "day": 2,
+        "breakfast": "2 Idli + Sambar + Chutney",
+        "lunch": "1 cup Rice + Dal + 2 Roti + Mix Vegetable + Raita",
+        "snacks": "Fruit salad + 1 handful nuts",
+        "dinner": "1 cup Rice + Dal + Vegetable Sabji + Salad"
+      },
+      {
+        "day": 3,
+        "breakfast": "2 Idli + Sambar + Chutney",
+        "lunch": "1 cup Rice + Sambar + 2 Roti + Vegetable Sabji + Buttermilk",
+        "snacks": "1 bowl sprouts salad",
+        "dinner": "1 cup Khichdi + 1 bowl Curd + Salad"
+      },
+      {
+        "day": 4,
+        "breakfast": "Poha with vegetables + 1 glass milk",
+        "lunch": "1 cup Rice + Chole + 2 Roti + Salad + Buttermilk",
+        "snacks": "1 cup Tea/Coffee + 2 biscuits",
+        "dinner": "1 cup Khichdi + 1 bowl Curd + Salad"
+      },
+      {
+        "day": 5,
+        "breakfast": "2 Idli + Sambar + Chutney",
+        "lunch": "1 cup Rice + Sambar + 2 Roti + Vegetable Sabji + Buttermilk",
+        "snacks": "1 bowl sprouts salad",
+        "dinner": "1 cup Rice + Dal + Vegetable Sabji + Salad"
+      }
+    ],
+    "generated_date": "2025-10-31 23:13:40"
+  }
+}

@@ -1,0 +1,290 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veterinarian Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 4px solid #10b981;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .action-btn {
+            background: white;
+            border: none;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .action-btn.patients {
+            border-top: 4px solid #10b981;
+        }
+
+        .action-btn.prescriptions {
+            border-top: 4px solid #3b82f6;
+        }
+
+        .action-btn.chat {
+            border-top: 4px solid #8b5cf6;
+        }
+
+        .action-btn.logout {
+            border-top: 4px solid #ef4444;
+        }
+
+        .btn-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .search-box {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .animal-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #10b981;
+            transition: all 0.3s ease;
+        }
+
+        .animal-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+
+        .status-badge {
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .btn-prescribe {
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .btn-prescribe:hover {
+            background: #059669;
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .form-control {
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e2e8f0;
+        }
+
+        .form-control:focus {
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .action-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="header-card">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h2 class="mb-2">Welcome, Dr. {{ doctor_name }}! 🐾</h2>
+                    <p class="text-muted mb-0">Veterinarian Dashboard - Animal Patient Management</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <span class="badge bg-primary fs-6">
+                        Total Animals: {{ animals|length }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="/veterinarian/dashboard" class="action-btn patients">
+                <i class="fas fa-paw btn-icon text-success"></i>
+                <h5 class="mb-1">Animal Patients</h5>
+                <small class="text-muted">Manage all animals</small>
+            </a>
+            
+            <a href="/api/doctor/records" class="action-btn prescriptions">
+                <i class="fas fa-prescription btn-icon text-primary"></i>
+                <h5 class="mb-1">Prescriptions</h5>
+                <small class="text-muted">View all records</small>
+            </a>
+            
+            <a href="/animal/chat" class="action-btn chat">
+                <i class="fas fa-comments btn-icon text-purple"></i>
+                <h5 class="mb-1">Animal Chat</h5>
+                <small class="text-muted">Chat with owners</small>
+            </a>
+            
+            <a href="/doctor/logout" class="action-btn logout">
+                <i class="fas fa-sign-out-alt btn-icon text-danger"></i>
+                <h5 class="mb-1">Logout</h5>
+                <small class="text-muted">End session</small>
+            </a>
+        </div>
+
+        <!-- Search Box -->
+        <div class="search-box">
+            <form class="row g-3 align-items-center">
+                <div class="col-md-10">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="fas fa-search text-muted"></i>
+                        </span>
+                        <input type="text" class="form-control border-start-0" name="search" 
+                               placeholder="Search by Animal ID, Name, Owner, Village, or Symptoms..." 
+                               value="{{ search_query }}">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success flex-fill">
+                            <i class="fas fa-search me-2"></i>Search
+                        </button>
+                        <a href="/veterinarian/dashboard" class="btn btn-outline-secondary">
+                            <i class="fas fa-refresh"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Animal Patients List -->
+        <div class="row">
+            <div class="col-12">
+                <h4 class="mb-3">Animal Patients</h4>
+                
+                {% if animals %}
+                    {% for animal_id, animal_data in animals.items() %}
+                    <div class="animal-card">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <div class="d-flex align-items-center mb-2">
+                                    <h5 class="mb-0 me-3">{{ animal_data.animal_name }}</h5>
+                                    <span class="animal-type-badge bg-light text-dark me-2">
+                                        <i class="fas fa-paw me-1"></i>{{ animal_data.animal_type }}
+                                    </span>
+                                    <span class="status-badge {% if animal_data.status == 'prescribed' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                                        {{ animal_data.status|title }}
+                                    </span>
+                                </div>
+                                
+                                <div class="row text-sm">
+                                    <div class="col-sm-4">
+                                        <small class="text-muted">
+                                            <i class="fas fa-user me-1"></i><strong>Owner:</strong> {{ animal_data.owner_name }}
+                                        </small>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <small class="text-muted">
+                                            <i class="fas fa-map-marker-alt me-1"></i><strong>Village:</strong> {{ animal_data.village }}
+                                        </small>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>{{ animal_data.submission_date }}
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <div class="mt-2">
+                                    <small class="text-muted">
+                                        <strong>Symptoms:</strong> {{ animal_data.symptoms[:100] }}{% if animal_data.symptoms|length > 100 %}...{% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4 text-end">
+                                <a href="/veterinarian/animal/{{ animal_id }}" class="btn btn-prescribe">
+                                    <i class="fas fa-stethoscope me-2"></i>
+                                    {% if animal_data.status == 'prescribed' %}Update{% else %}Prescribe{% endif %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="animal-card text-center py-4">
+                        <i class="fas fa-paw fa-3x text-muted mb-3"></i>
+                        <h5>No Animal Patients Found</h5>
+                        <p class="text-muted">
+                            {% if search_query %}
+                                No animal patients match your search criteria.
+                            {% else %}
+                                There are no animal patients waiting for consultation yet.
+                            {% endif %}
+                        </p>
+                        {% if search_query %}
+                            <a href="/veterinarian/dashboard" class="btn btn-success">
+                                <i class="fas fa-list me-2"></i>View All Animals
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

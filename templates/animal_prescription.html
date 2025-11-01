@@ -1,0 +1,288 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animal Health Prescription - Healthcare Kiosk</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .prescription-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            animation: slideIn 0.8s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #8b4513 0%, #d2691e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .prescription-body {
+            padding: 30px;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" opacity="0.05"><rect width="100" height="100" fill="%238b4513"/></svg>');
+        }
+
+        .practice-info {
+            text-align: center;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f5dc 0%, #deb887 100%);
+            border-radius: 10px;
+            border-left: 5px solid #8b4513;
+        }
+
+        .owner-details, .animal-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .info-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #8b4513;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .symptoms-section {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .prescription-details {
+            background: linear-gradient(135deg, #f5f5dc 0%, #deb887 100%);
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border: 2px dashed #8b4513;
+        }
+
+        .vet-signature {
+            text-align: right;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #ccc;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-download {
+            background: #8b4513;
+            color: white;
+        }
+
+        .btn-print {
+            background: #d2691e;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .owner-details, .animal-info {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="prescription-container">
+        <div class="header">
+            <h1>🐾 Animal Health Prescription</h1>
+            <p>Healthcare Kiosk - Veterinary Medical Document</p>
+        </div>
+
+        <div class="prescription-body">
+            <div class="practice-info">
+                <h2>🏥 Veterinary Practice</h2>
+                <p style="margin-top: 10px; font-size: 1.1em;">Complete Animal Health Assessment Report</p>
+            </div>
+
+            <div class="owner-details">
+                <div class="info-card">
+                    <h3>👤 Owner Details</h3>
+                    <p><strong>Owner Name:</strong> <span id="ownerName">-</span></p>
+                    <p><strong>Contact:</strong> <span id="ownerContact">-</span></p>
+                    <p><strong>Location:</strong> <span id="ownerLocation">-</span></p>
+                    <p><strong>Owner Age:</strong> <span id="ownerAge">-</span></p>
+                </div>
+                
+                <div class="info-card">
+                    <h3>📅 Assessment Details</h3>
+                    <p><strong>Animal ID:</strong> <span id="animalId">-</span></p>
+                    <p><strong>Assessment Date:</strong> <span id="assessmentDate">-</span></p>
+                    <p><strong>Assessment Time:</strong> <span id="assessmentTime">-</span></p>
+                    <p><strong>Status:</strong> <span id="animalStatus">-</span></p>
+                </div>
+            </div>
+
+            <div class="animal-info">
+                <div class="info-card">
+                    <h3>🐕 Patient Information</h3>
+                    <p><strong>Animal Type:</strong> <span id="animalType">-</span></p>
+                    <p><strong>Animal Breed:</strong> <span id="animalBreed">-</span></p>
+                    <p><strong>Gender:</strong> <span id="animalGender">-</span></p>
+                    <p><strong>Age:</strong> <span id="animalAge">-</span></p>
+                </div>
+                
+                <div class="info-card">
+                    <h3>🩺 Health Parameters</h3>
+                    <p><strong>Temperature:</strong> <span id="animalTemp">-</span></p>
+                    <p><strong>Heart Rate:</strong> <span id="animalHeart">-</span></p>
+                    <p><strong>Weight:</strong> <span id="animalWeight">-</span></p>
+                    <p><strong>Condition:</strong> <span id="animalCondition">-</span></p>
+                </div>
+            </div>
+
+            <div class="symptoms-section">
+                <h3>📋 Symptoms Reported</h3>
+                <p id="animalSymptoms" style="margin-top: 10px; font-style: italic;">No symptoms reported</p>
+            </div>
+
+            <div class="prescription-details">
+                <h3>💊 Veterinary Prescription</h3>
+                <div id="animalPrescriptionContent" style="margin-top: 15px; line-height: 1.6;">
+                    <p style="color: #666; font-style: italic;">Prescription will be provided by the veterinarian after assessment.</p>
+                </div>
+                
+                <div class="vet-signature">
+                    <p><strong>Prescribed By:</strong> <span id="vetName">Vet Not Assigned</span></p>
+                    <p style="margin-top: 5px;"><strong>Date:</strong> <span id="vetDate">-</span></p>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-download" onclick="downloadAnimalPrescription()">
+                    📥 Download PDF
+                </button>
+                <button class="btn btn-print" onclick="printAnimalPrescription()">
+                    🖨️ Print Prescription
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function loadAnimalPrescriptionData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const animalId = urlParams.get('animal_id');
+            
+            if (animalId) {
+                fetch(`/api/animal/prescription/${animalId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            displayAnimalPrescriptionData(data.prescription);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading animal prescription:', error);
+                    });
+            }
+        }
+
+        function displayAnimalPrescriptionData(data) {
+            document.getElementById('ownerName').textContent = data.owner_name || '-';
+            document.getElementById('ownerContact').textContent = data.owner_phone || '-';
+            document.getElementById('ownerLocation').textContent = data.location || '-';
+            document.getElementById('ownerAge').textContent = data.owner_age || '-';
+            
+            document.getElementById('animalId').textContent = data.animal_id || '-';
+            document.getElementById('animalType').textContent = data.animal_type || '-';
+            document.getElementById('animalBreed').textContent = data.animal_breed || '-';
+            document.getElementById('animalGender').textContent = data.animal_gender || '-';
+            document.getElementById('animalAge').textContent = data.animal_age || '-';
+            
+            document.getElementById('animalSymptoms').textContent = data.symptoms || 'No symptoms reported';
+            
+            // Health parameters
+            document.getElementById('animalTemp').textContent = data.temperature ? 
+                `${data.temperature}°C` : 'Not measured';
+            document.getElementById('animalHeart').textContent = data.heart_rate ? 
+                `${data.heart_rate} BPM` : 'Not measured';
+            document.getElementById('animalWeight').textContent = data.weight ? 
+                `${data.weight} kg` : 'Not measured';
+            document.getElementById('animalCondition').textContent = data.condition || 'Not assessed';
+            
+            // Prescription
+            if (data.prescription) {
+                document.getElementById('animalPrescriptionContent').innerHTML = 
+                    `<div style="white-space: pre-line;">${data.prescription}</div>`;
+                document.getElementById('vetName').textContent = data.vet_name || 'Vet Not Assigned';
+                document.getElementById('vetDate').textContent = 
+                    new Date(data.prescription_date).toLocaleDateString();
+            }
+            
+            // Dates
+            const now = new Date();
+            document.getElementById('assessmentDate').textContent = now.toLocaleDateString();
+            document.getElementById('assessmentTime').textContent = now.toLocaleTimeString();
+            document.getElementById('animalStatus').textContent = data.prescription ? 'Completed' : 'Pending';
+        }
+
+        function downloadAnimalPrescription() {
+            alert('Download functionality would be implemented here');
+        }
+
+        function printAnimalPrescription() {
+            window.print();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadAnimalPrescriptionData);
+    </script>
+</body>
+</html>
