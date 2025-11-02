@@ -255,7 +255,7 @@ LANGUAGES = {
         'view_history': 'इतिहास देखें',
         'patient_queue': 'रोगी कतार',
         'chat_with_doctor': 'डॉक्टर से चैट करें',
-        'emergency_sos': 'आपातकालीन एसओएस',
+        'emergency_sos': 'आपातकालीन एसऒएस',
         'your_health_priority': 'आपका स्वास्थ्य हमारी प्राथमिकता है',
         'english': 'अंग्रेजी',
         'hindi': 'हिंदी',
@@ -479,7 +479,7 @@ LANGUAGES = {
         'write_prescription': 'ಪ್ರಿಸ್ಕ್ರಿಪ್ಷನ್ ಬರೆಯಿರಿ',
         'update_prescription': 'ಪ್ರಿಸ್ಕ್ರಿಪ್ಷನ್ ಅಪ್ಡೇಟ್ ಮಾಡಿ',
         'prescription_details': 'ಪ್ರಿಸ್ಕ್ರಿಪ್ಷನ್ ವಿವರಗಳು',
-        'submit_prescription': 'ಪ್ರಿಸ್ಕ್ರಿಪ್ಷನ್ ಸಬ್ಮಿಟ್ ಮಾಡಿ',
+        'submit_prescription': 'ಪ್ರिस्क್ರಿಪ್ಷನ್ ಸಬ್ಮಿಟ್ ಮಾಡಿ',
         'back_to_dashboard': 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ',
         # Login
         'doctor_login': 'ಡಾಕ್ಟರ್ ಲಾಗಿನ್',
@@ -617,7 +617,7 @@ def utility_processor():
                 return translation
         return translation
     
-    return dict(t=t, current_language=get_current_language)
+    return dict(t=t, current_language=get_current_language())
 
 # Database setup for chat and records
 def init_db():
@@ -761,6 +761,117 @@ def patient_view(pid):
         return "No record found for ID: " + pid, 404
     return render_template("patient_view.html", pdata=pdata)
 
+# Animal Routes
+@app.route('/animal/health')
+def animal_health():
+    return render_template('animal_form.html')
+
+@app.route('/animal/health/submit', methods=['POST'])
+def animal_health_submit():
+    try:
+        # Load existing animal data
+        animals_data = load_animals()
+        
+        # Get form data
+        owner_name = request.form.get("owner_name", "").strip()
+        animal_type = request.form.get("animal_type", "").strip()
+        animal_name = request.form.get("animal_name", "").strip()
+        gender = request.form.get("gender", "").strip()
+        breed = request.form.get("breed", "").strip()
+        condition = request.form.get("condition", "").strip()
+        age = request.form.get("age", "").strip()
+        weight = request.form.get("weight", "").strip()
+        symptoms = request.form.get("symptoms", "").strip()
+        village = request.form.get("village", "").strip()
+        contact = request.form.get("contact", "").strip()
+        
+        if not all([owner_name, animal_type, animal_name, gender, breed, condition, age, weight, symptoms, village]):
+            error_message = get_translation('fill_all_fields')
+            return render_template("animal_form.html", error=error_message)
+        
+        # Generate animal ID
+        ts = datetime.now().strftime("%Y%m%d%H%M%S")
+        animal_id = f"animal_{animal_type}_{ts}"
+        
+        # Save animal data
+        animals_data[animal_id] = {
+            "animal_id": animal_id,
+            "owner_name": owner_name,
+            "animal_type": animal_type,
+            "animal_name": animal_name,
+            "gender": gender,
+            "breed": breed,
+            "condition": condition,
+            "age": age,
+            "weight": weight,
+            "symptoms": symptoms,
+            "village": village,
+            "contact": contact,
+            "status": "waiting",
+            "prescription": "",
+            "veterinarian_name": "",
+            "submission_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "prescription_date": ""
+        }
+        
+        save_animals(animals_data)
+        
+        # Notify veterinarians via socket
+        socketio.emit('new_animal_patient_notification', {
+            'animal_id': animal_id,
+            'animal_name': animal_name,
+            'animal_type': animal_type,
+            'owner_name': owner_name,
+            'message': f'New animal patient {animal_name} ({animal_type}) submitted form'
+        })
+        
+        success_message = get_translation('submitted_success')
+        return render_template("animal_form.html", 
+                             message=success_message, 
+                             animal_id=animal_id)
+    
+    except Exception as e:
+        return render_template("animal_form.html", error=f"Error submitting form: {str(e)}")
+
+# Animal History and Search Routes
+@app.route('/animal/history')
+def animal_history():
+    animals_data = load_animals()
+    return render_template("animal_history.html", animals=animals_data)
+
+@app.route('/animal/search', methods=['GET', 'POST'])
+def animal_search():
+    animals_data = load_animals()
+    search_results = {}
+    search_query = ""
+    
+    if request.method == 'POST':
+        search_query = request.form.get("animal_id", "").strip()
+        if search_query:
+            for animal_id, animal_data in animals_data.items():
+                if (search_query.lower() in animal_id.lower() or 
+                    search_query.lower() in animal_data.get('animal_name', '').lower() or
+                    search_query.lower() in animal_data.get('owner_name', '').lower()):
+                    search_results[animal_id] = animal_data
+    
+    return render_template("animal_search.html", animals=search_results, search_query=search_query)
+
+@app.route('/animal/delete/<animal_id>', methods=['POST'])
+def animal_delete(animal_id):
+    animals_data = load_animals()
+    if animal_id in animals_data:
+        del animals_data[animal_id]
+        save_animals(animals_data)
+    return redirect('/animal/history')
+
+@app.route('/animal/view/<animal_id>')
+def animal_view(animal_id):
+    animals_data = load_animals()
+    animal_data = animals_data.get(animal_id)
+    if not animal_data:
+        return "No animal record found for ID: " + animal_id, 404
+    return render_template("animal_view.html", animal_data=animal_data)
+
 # Doctor Routes - Fixed Login Credentials
 @app.route('/doctor/login', methods=['GET', 'POST'])
 def doctor_login():
@@ -865,105 +976,6 @@ def doctor_logout():
     session.clear()
     return redirect('/doctor/login')
 
-# Animal Health Routes
-@app.route('/animal/health')
-def animal_health():
-    return render_template('animal_form.html')
-
-@app.route('/animal/health/submit', methods=['POST'])
-def animal_health_submit():
-    try:
-        # Load existing animal data
-        animals_data = load_animals()
-        
-        # Get form data
-        owner_name = request.form.get("owner_name", "").strip()
-        animal_type = request.form.get("animal_type", "").strip()
-        animal_name = request.form.get("animal_name", "").strip()
-        gender = request.form.get("gender", "").strip()
-        breed = request.form.get("breed", "").strip()
-        condition = request.form.get("condition", "").strip()
-        age = request.form.get("age", "").strip()
-        weight = request.form.get("weight", "").strip()
-        symptoms = request.form.get("symptoms", "").strip()
-        village = request.form.get("village", "").strip()
-        contact = request.form.get("contact", "").strip()
-        
-        if not all([owner_name, animal_type, animal_name, gender, breed, condition, age, weight, symptoms, village]):
-            error_message = get_translation('fill_all_fields')
-            return render_template("animal_form.html", error=error_message)
-        
-        # Generate animal ID
-        ts = datetime.now().strftime("%Y%m%d%H%M%S")
-        animal_id = f"animal_{animal_type}_{ts}"
-        
-        # Save animal data
-        animals_data[animal_id] = {
-            "animal_id": animal_id,
-            "owner_name": owner_name,
-            "animal_type": animal_type,
-            "animal_name": animal_name,
-            "gender": gender,
-            "breed": breed,
-            "condition": condition,
-            "age": age,
-            "weight": weight,
-            "symptoms": symptoms,
-            "village": village,
-            "contact": contact,
-            "status": "waiting",
-            "prescription": "",
-            "veterinarian_name": "",
-            "submission_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "prescription_date": ""
-        }
-        
-        save_animals(animals_data)
-        
-        # Notify veterinarians via socket
-        socketio.emit('new_animal_patient_notification', {
-            'animal_id': animal_id,
-            'animal_name': animal_name,
-            'animal_type': animal_type,
-            'owner_name': owner_name,
-            'message': f'New animal patient {animal_name} ({animal_type}) submitted form'
-        })
-        
-        success_message = get_translation('submitted_success')
-        return render_template("animal_form.html", 
-                             message=success_message, 
-                             animal_id=animal_id)
-    
-    except Exception as e:
-        return render_template("animal_form.html", error=f"Error submitting form: {str(e)}")
-
-@app.route('/animal/health/status', methods=['GET', 'POST'])
-def animal_health_status():
-    animals_data = load_animals()
-    search_results = {}
-    search_query = ""
-    
-    if request.method == 'POST':
-        search_query = request.form.get("animal_id", "").strip()
-        if search_query:
-            for animal_id, animal_data in animals_data.items():
-                if (search_query.lower() in animal_id.lower() or 
-                    search_query.lower() in animal_data.get('animal_name', '').lower() or
-                    search_query.lower() in animal_data.get('owner_name', '').lower()):
-                    search_results[animal_id] = animal_data
-    
-    return render_template("animal_prescription.html", 
-                         animals=search_results, 
-                         search_query=search_query)
-
-@app.route('/animal/health/view/<animal_id>')
-def animal_health_view(animal_id):
-    animals_data = load_animals()
-    animal_data = animals_data.get(animal_id)
-    if not animal_data:
-        return "No animal record found for ID: " + animal_id, 404
-    return render_template("animal_view.html", animal_data=animal_data)
-
 # Chat Routes
 @app.route('/patient/chat')
 def patient_chat():
@@ -991,7 +1003,7 @@ def doctor_chat():
                          doctor_name=session.get('doctor_name'),
                          lang=session.get('lang', 'en'))
 
-# Veterinarian-specific routes - FIXED ROUTES
+# Veterinarian-specific routes
 @app.route('/veterinarian/dashboard')
 def veterinarian_dashboard():
     if not session.get('doctor_logged_in'):
@@ -1093,8 +1105,14 @@ def generate_balance_diet():
         if not all([diet_type, occupation, age, weight, disease]):
             return render_template("balance_diet.html", error="Please fill all fields!")
         
+        # Convert age to integer for age group calculation
+        try:
+            age_int = int(age)
+        except:
+            return render_template("balance_diet.html", error="Please enter a valid age!")
+        
         # Generate diet plan based on inputs
-        diet_plan = generate_diet_plan(diet_type, occupation, age, weight, disease)
+        diet_plan = generate_diet_plan(diet_type, occupation, age_int, weight, disease)
         
         # Save diet data
         diet_data = load_balance_diet()
@@ -1128,132 +1146,159 @@ def generate_balance_diet():
 def generate_diet_plan(diet_type, occupation, age, weight, disease):
     """Generate a 5-day diet plan based on user inputs"""
     
-    # Base meals structure
-    days = []
+    # Determine age group
+    if 7 <= age <= 16:
+        age_group = "school"
+    elif 17 <= age <= 25:
+        age_group = "college"
+    elif 26 <= age <= 40:
+        age_group = "job"
+    elif 41 <= age <= 60:
+        age_group = "housewife"
+    else:
+        age_group = "elderly"
     
-    for day in range(1, 6):
-        day_plan = {
-            "day": day,
-            "breakfast": generate_breakfast(diet_type, occupation, disease),
-            "lunch": generate_lunch(diet_type, occupation, disease),
-            "snacks": generate_snacks(diet_type, occupation, disease),
-            "dinner": generate_dinner(diet_type, occupation, disease)
-        }
-        days.append(day_plan)
-    
-    return days
+    # Get diet plan based on diet type and age group
+    if diet_type == "vegetarian":
+        return get_vegetarian_diet(age_group, disease)
+    elif diet_type == "eggitarian":
+        return get_eggitarian_diet(age_group, disease)
+    elif diet_type == "non_vegetarian":
+        return get_non_vegetarian_diet(age_group, disease)
+    else:
+        return get_vegetarian_diet(age_group, disease)  # default
 
-def generate_breakfast(diet_type, occupation, disease):
-    """Generate breakfast based on diet type and occupation"""
-    breakfast_options = {
-        "vegetarian": [
-            "2 Roti + Vegetable Sabji + 1 bowl Dal + Salad",
-            "Poha with vegetables + 1 glass milk",
-            "Upma with vegetables + 1 bowl curd",
-            "2 Idli + Sambar + Chutney",
-            "Vegetable Paratha + 1 bowl curd"
-        ],
-        "eggitarian": [
-            "2 Roti + Vegetable Sabji + 1 boiled egg + Salad",
-            "Poha with vegetables + 1 boiled egg",
-            "2 Egg Paratha + 1 glass milk",
-            "2 Idli + Sambar + 1 boiled egg",
-            "Vegetable Paratha + 1 boiled egg"
-        ],
-        "non_vegetarian": [
-            "2 Roti + Chicken Curry + Salad",
-            "Chicken Poha + 1 glass milk",
-            "2 Egg Paratha + Chicken Curry",
-            "Chicken Upma + 1 bowl curd",
-            "2 Roti + Fish Curry + Salad"
-        ]
-    }
+def get_vegetarian_diet(age_group, disease):
+    """Generate vegetarian diet plan based on age group and disease"""
     
-    return random.choice(breakfast_options.get(diet_type, breakfast_options["vegetarian"]))
+    if age_group == "school":
+        return [
+            {"day": 1, "breakfast": "Milk + poha with peanuts", "lunch": "Chapati + dal + sabzi + salad", "snacks": "Fruit or nuts", "dinner": "Khichdi + curd"},
+            {"day": 2, "breakfast": "Oats with fruits", "lunch": "Rice + rajma + salad", "snacks": "Homemade bhel", "dinner": "Roti + mixed veg"},
+            {"day": 3, "breakfast": "Vegetable paratha + curd", "lunch": "Vegetable pulao + curd", "snacks": "Coconut water + sandwich", "dinner": "Rice + dal"},
+            {"day": 4, "breakfast": "Idli + sambar", "lunch": "Roti + chana dal + sabzi", "snacks": "Roasted makhana", "dinner": "Roti + tofu curry"},
+            {"day": 5, "breakfast": "Sprouts + banana milk", "lunch": "Rice + dal + paneer", "snacks": "Fruit chaat", "dinner": "Vegetable soup + rice"}
+        ]
+    elif age_group == "college":
+        return [
+            {"day": 1, "breakfast": "Milk + banana + oats", "lunch": "Chapati + dal + sabzi", "snacks": "Green tea + roasted chana", "dinner": "Roti + dal + sabzi"},
+            {"day": 2, "breakfast": "Paneer sandwich + fruit", "lunch": "Rajma + rice + salad", "snacks": "Peanut butter toast", "dinner": "Soup + vegetable pulao"},
+            {"day": 3, "breakfast": "Besan chilla + chutney", "lunch": "Paneer curry + roti", "snacks": "Fruit smoothie", "dinner": "Khichdi + curd"},
+            {"day": 4, "breakfast": "Poha + nuts", "lunch": "Vegetable biryani + curd", "snacks": "Handful nuts", "dinner": "Roti + tofu curry"},
+            {"day": 5, "breakfast": "Idli + coconut chutney", "lunch": "Khichdi + salad", "snacks": "Corn + lemon", "dinner": "Vegetable stew + rice"}
+        ]
+    elif age_group == "job":
+        return [
+            {"day": 1, "breakfast": "Oats + nuts + milk", "lunch": "Brown rice + dal + sabzi", "snacks": "Green tea + foxnuts", "dinner": "Roti + veg curry"},
+            {"day": 2, "breakfast": "Smoothie bowl", "lunch": "Chapati + paneer curry", "snacks": "Coconut water + fruits", "dinner": "Soup + multigrain toast"},
+            {"day": 3, "breakfast": "Veg upma + curd", "lunch": "Millet khichdi + salad", "snacks": "Roasted peanuts", "dinner": "Dal + veg pulao"},
+            {"day": 4, "breakfast": "Wheat toast + avocado", "lunch": "Roti + dal + green veg", "snacks": "Lemon water + dry fruits", "dinner": "Roti + tofu"},
+            {"day": 5, "breakfast": "Poha + sprouts", "lunch": "Rice + chole", "snacks": "Tea + murmura mix", "dinner": "Vegetable soup + salad"}
+        ]
+    elif age_group == "housewife":
+        return [
+            {"day": 1, "breakfast": "Oats + flax seeds + milk", "lunch": "Roti + dal + sabzi", "snacks": "Herbal tea + dry fruits", "dinner": "Vegetable soup + roti"},
+            {"day": 2, "breakfast": "Daliya + nuts", "lunch": "Brown rice + sambar", "snacks": "Fruit bowl", "dinner": "Daliya + veg curry"},
+            {"day": 3, "breakfast": "Sprouts + fruit", "lunch": "Bajra roti + veg curry", "snacks": "Roasted makhana", "dinner": "Soup + toast"},
+            {"day": 4, "breakfast": "Ragi dosa", "lunch": "Khichdi + curd", "snacks": "Lemon water", "dinner": "Khichdi + curd"},
+            {"day": 5, "breakfast": "Poha + vegetables", "lunch": "Chapati + sprouts sabzi", "snacks": "Cucumber sticks", "dinner": "Vegetable stew"}
+        ]
+    else:  # elderly
+        return [
+            {"day": 1, "breakfast": "Soft idli + chutney", "lunch": "Soft rice + dal + sabzi", "snacks": "Fruit puree", "dinner": "Soup + khichdi"},
+            {"day": 2, "breakfast": "Oats + milk", "lunch": "Khichdi + curd", "snacks": "Coconut water", "dinner": "Roti + dal"},
+            {"day": 3, "breakfast": "Daliya + banana", "lunch": "Soft roti + dal", "snacks": "Herbal tea + biscuit", "dinner": "Daliya + milk"},
+            {"day": 4, "breakfast": "Poha (soft)", "lunch": "Rice + vegetable stew", "snacks": "Milkshake", "dinner": "Soft rice + veg curry"},
+            {"day": 5, "breakfast": "Vegetable upma", "lunch": "Moong dal soup + rice", "snacks": "Steamed fruits", "dinner": "Vegetable stew"}
+        ]
 
-def generate_lunch(diet_type, occupation, disease):
-    """Generate lunch based on diet type and occupation"""
-    lunch_options = {
-        "vegetarian": [
-            "1 cup Rice + 2 Roti + Dal + Vegetable Sabji + Salad + 1 bowl Curd",
-            "1 cup Rice + Sambar + 2 Roti + Vegetable Sabji + Buttermilk",
-            "1 cup Rice + Dal + 2 Roti + Mix Vegetable + Raita",
-            "1 cup Rice + Rajma + 2 Roti + Salad + Curd",
-            "1 cup Rice + Chole + 2 Roti + Salad + Buttermilk"
-        ],
-        "eggitarian": [
-            "1 cup Rice + 2 Roti + Egg Curry + Vegetable Sabji + Salad",
-            "1 cup Rice + 2 Roti + Chicken Curry + Dal + Salad",
-            "1 cup Rice + Egg Biryani + Raita + Salad",
-            "1 cup Rice + 2 Roti + Fish Curry + Vegetable Sabji",
-            "1 cup Rice + 2 Roti + Mutton Curry + Dal + Salad"
-        ],
-        "non_vegetarian": [
-            "1 cup Rice + 2 Roti + Chicken Curry + Dal + Salad",
-            "1 cup Rice + 2 Roti + Fish Curry + Vegetable Sabji + Curd",
-            "1 cup Rice + Mutton Curry + 2 Roti + Salad",
-            "1 cup Rice + 2 Roti + Prawn Curry + Dal + Salad",
-            "1 cup Rice + Chicken Biryani + Raita + Salad"
-        ]
-    }
+def get_eggitarian_diet(age_group, disease):
+    """Generate eggitarian diet plan based on age group and disease"""
     
-    return random.choice(lunch_options.get(diet_type, lunch_options["vegetarian"]))
+    if age_group == "school":
+        return [
+            {"day": 1, "breakfast": "Boiled egg + milk + toast", "lunch": "Roti + dal + sabzi + egg curry", "snacks": "Fruit + nuts", "dinner": "Khichdi + egg bhurji"},
+            {"day": 2, "breakfast": "Vegetable omelet + fruit", "lunch": "Rice + rajma + salad", "snacks": "Bhel + sprouts", "dinner": "Chapati + dal"},
+            {"day": 3, "breakfast": "Poha + egg", "lunch": "Paneer curry + roti", "snacks": "Milkshake", "dinner": "Egg curry + rice"},
+            {"day": 4, "breakfast": "Oats + banana + nuts", "lunch": "Vegetable pulao + curd", "snacks": "Coconut water + toast", "dinner": "Vegetable soup + toast"},
+            {"day": 5, "breakfast": "Egg sandwich + juice", "lunch": "Rice + dal + boiled egg", "snacks": "Boiled corn", "dinner": "Roti + paneer curry"}
+        ]
+    elif age_group == "college":
+        return [
+            {"day": 1, "breakfast": "2 boiled eggs + oats + fruit", "lunch": "Roti + dal + sabzi + egg curry", "snacks": "Tea + roasted chana", "dinner": "Egg curry + rice"},
+            {"day": 2, "breakfast": "Veg omelet + toast", "lunch": "Rice + chole + salad", "snacks": "Fruit smoothie", "dinner": "Roti + veg + salad"},
+            {"day": 3, "breakfast": "Poha + milk", "lunch": "Millet khichdi + curd", "snacks": "Green tea + nuts", "dinner": "Veg soup + omelet"},
+            {"day": 4, "breakfast": "Banana shake + nuts", "lunch": "Roti + paneer curry", "snacks": "Peanut butter toast", "dinner": "Paneer pulao + curd"},
+            {"day": 5, "breakfast": "Scrambled eggs + toast", "lunch": "Brown rice + dal + boiled egg", "snacks": "Makhana + herbal tea", "dinner": "Roti + dal + egg bhurji"}
+        ]
+    elif age_group == "job":
+        return [
+            {"day": 1, "breakfast": "Veg omelet + oats + fruit", "lunch": "Roti + dal + sabzi", "snacks": "Roasted nuts", "dinner": "Dal soup + roti"},
+            {"day": 2, "breakfast": "Boiled eggs + green tea", "lunch": "Brown rice + rajma", "snacks": "Coconut water", "dinner": "Egg curry + salad"},
+            {"day": 3, "breakfast": "Paneer sandwich", "lunch": "Roti + egg curry", "snacks": "Soup", "dinner": "Veg pulao + curd"},
+            {"day": 4, "breakfast": "Poha + milk", "lunch": "Vegetable khichdi + curd", "snacks": "Green tea + makhana", "dinner": "Roti + paneer bhurji"},
+            {"day": 5, "breakfast": "Scrambled eggs + wheat toast", "lunch": "Roti + tofu curry", "snacks": "Fruit salad", "dinner": "Oats + boiled egg"}
+        ]
+    elif age_group == "housewife":
+        return [
+            {"day": 1, "breakfast": "Oats + egg whites", "lunch": "Roti + dal + sabzi", "snacks": "Herbal tea + nuts", "dinner": "Veg soup + toast"},
+            {"day": 2, "breakfast": "Boiled egg + fruit", "lunch": "Brown rice + curd + sabzi", "snacks": "Fruit bowl", "dinner": "Khichdi + curd"},
+            {"day": 3, "breakfast": "Ragi dosa + curd", "lunch": "Roti + egg curry", "snacks": "Makhana + milk", "dinner": "Roti + dal"},
+            {"day": 4, "breakfast": "Vegetable upma", "lunch": "Bajra roti + green veg", "snacks": "Coconut water", "dinner": "Oats + milk"},
+            {"day": 5, "breakfast": "Poha + green tea", "lunch": "Moong dal khichdi", "snacks": "Sprouts chaat", "dinner": "Egg curry + salad"}
+        ]
+    else:  # elderly
+        return [
+            {"day": 1, "breakfast": "Soft boiled egg + oats", "lunch": "Soft rice + dal + egg curry", "snacks": "Fruit puree", "dinner": "Vegetable soup + egg white"},
+            {"day": 2, "breakfast": "Daliya + milk", "lunch": "Khichdi + curd", "snacks": "Herbal tea", "dinner": "Daliya + milk"},
+            {"day": 3, "breakfast": "Poha (soft)", "lunch": "Soft roti + sabzi", "snacks": "Milkshake", "dinner": "Soft khichdi"},
+            {"day": 4, "breakfast": "Ragi porridge", "lunch": "Rice + dal soup", "snacks": "Coconut water", "dinner": "Rice + dal"},
+            {"day": 5, "breakfast": "Fruit + soft toast", "lunch": "Moong soup + rice", "snacks": "Banana", "dinner": "Soup + toast"}
+        ]
 
-def generate_snacks(diet_type, occupation, disease):
-    """Generate snacks based on diet type and occupation"""
-    snacks_options = {
-        "vegetarian": [
-            "1 cup Tea/Coffee + 2 biscuits",
-            "Fruit salad + 1 handful nuts",
-            "1 cup milk + 2 dates",
-            "1 bowl sprouts salad",
-            "1 cup green tea + 1 fruit"
-        ],
-        "eggitarian": [
-            "1 cup Tea/Coffee + 2 biscuits",
-            "Fruit salad + 1 boiled egg",
-            "1 cup milk + 2 dates + 1 boiled egg",
-            "1 bowl sprouts salad + 1 boiled egg",
-            "1 cup green tea + 1 fruit + handful nuts"
-        ],
-        "non_vegetarian": [
-            "1 cup Tea/Coffee + 2 biscuits",
-            "Fruit salad + handful nuts",
-            "1 cup milk + 2 dates",
-            "1 bowl chicken soup",
-            "1 cup green tea + 1 fruit"
-        ]
-    }
+def get_non_vegetarian_diet(age_group, disease):
+    """Generate non-vegetarian diet plan based on age group and disease"""
     
-    return random.choice(snacks_options.get(diet_type, snacks_options["vegetarian"]))
-
-def generate_dinner(diet_type, occupation, disease):
-    """Generate dinner based on diet type and occupation"""
-    dinner_options = {
-        "vegetarian": [
-            "2 Roti + Vegetable Sabji + Dal + Salad",
-            "1 cup Khichdi + 1 bowl Curd + Salad",
-            "2 Roti + Paneer Sabji + Salad",
-            "1 cup Rice + Dal + Vegetable Sabji + Salad",
-            "2 Roti + Mix Vegetable + Dal + Salad"
-        ],
-        "eggitarian": [
-            "2 Roti + Egg Curry + Vegetable Sabji + Salad",
-            "2 Roti + Chicken Curry + Dal + Salad",
-            "1 cup Rice + Egg Curry + Vegetable Sabji",
-            "2 Roti + Fish Curry + Salad",
-            "2 Roti + Mutton Curry + Vegetable Sabji"
-        ],
-        "non_vegetarian": [
-            "2 Roti + Chicken Curry + Vegetable Sabji + Salad",
-            "2 Roti + Fish Curry + Dal + Salad",
-            "1 cup Rice + Mutton Curry + Salad",
-            "2 Roti + Prawn Curry + Vegetable Sabji",
-            "2 Roti + Chicken Curry + Dal + Salad"
+    if age_group == "school":
+        return [
+            {"day": 1, "breakfast": "Milk + boiled egg + toast", "lunch": "Roti + dal + sabzi + grilled chicken", "snacks": "Fruit + nuts", "dinner": "Rice + dal + fish"},
+            {"day": 2, "breakfast": "Chicken sandwich + fruit", "lunch": "Rice + fish curry", "snacks": "Corn chaat", "dinner": "Chicken soup + toast"},
+            {"day": 3, "breakfast": "Poha + boiled egg", "lunch": "Vegetable pulao + boiled egg", "snacks": "Smoothie", "dinner": "Egg curry + roti"},
+            {"day": 4, "breakfast": "Oats + banana + nuts", "lunch": "Roti + chicken curry", "snacks": "Coconut water + sandwich", "dinner": "Khichdi + curd"},
+            {"day": 5, "breakfast": "Egg omelet + milk", "lunch": "Khichdi + curd + boiled egg", "snacks": "Boiled chickpeas", "dinner": "Veg soup + grilled fish"}
         ]
-    }
-    
-    return random.choice(dinner_options.get(diet_type, dinner_options["vegetarian"]))
+    elif age_group == "college":
+        return [
+            {"day": 1, "breakfast": "2 boiled eggs + oats", "lunch": "Brown rice + dal + chicken", "snacks": "Fruit smoothie", "dinner": "Soup + roti + grilled chicken"},
+            {"day": 2, "breakfast": "Omelet + brown bread + fruit", "lunch": "Roti + fish curry", "snacks": "Boiled egg + green tea", "dinner": "Veg pulao + fish"},
+            {"day": 3, "breakfast": "Chicken sandwich + green tea", "lunch": "Egg curry + roti + salad", "snacks": "Nuts mix", "dinner": "Roti + egg curry"},
+            {"day": 4, "breakfast": "Poha + milk", "lunch": "Millet khichdi + curd", "snacks": "Peanut butter toast", "dinner": "Dal + salad + boiled egg"},
+            {"day": 5, "breakfast": "Scrambled eggs + toast", "lunch": "Chicken biriyani (light)", "snacks": "Makhana + lemon water", "dinner": "Brown rice + tofu curry"}
+        ]
+    elif age_group == "job":
+        return [
+            {"day": 1, "breakfast": "Boiled eggs + oats", "lunch": "Roti + dal + chicken curry", "snacks": "Green tea + roasted nuts", "dinner": "Chicken soup + roti"},
+            {"day": 2, "breakfast": "Veg omelet + fruit", "lunch": "Brown rice + fish curry", "snacks": "Coconut water", "dinner": "Egg curry + rice"},
+            {"day": 3, "breakfast": "Poha + milk", "lunch": "Millet khichdi + curd", "snacks": "Soup + toast", "dinner": "Veg pulao + curd"},
+            {"day": 4, "breakfast": "Chicken sandwich", "lunch": "Roti + egg curry", "snacks": "Roasted chana", "dinner": "Roti + dal"},
+            {"day": 5, "breakfast": "Scrambled eggs + green tea", "lunch": "Veg pulao + grilled chicken", "snacks": "Fruit bowl", "dinner": "Soup + boiled egg"}
+        ]
+    elif age_group == "housewife":
+        return [
+            {"day": 1, "breakfast": "Oats + egg white + fruit", "lunch": "Brown rice + fish curry", "snacks": "Herbal tea + nuts", "dinner": "Soup + toast"},
+            {"day": 2, "breakfast": "Daliya + milk", "lunch": "Roti + dal + chicken", "snacks": "Fruit bowl", "dinner": "Khichdi + curd"},
+            {"day": 3, "breakfast": "Vegetable upma + boiled egg", "lunch": "Millet khichdi + curd", "snacks": "Makhana", "dinner": "Vegetable soup + boiled egg"},
+            {"day": 4, "breakfast": "Poha + green tea", "lunch": "Roti + egg curry", "snacks": "Lemon water", "dinner": "Roti + dal"},
+            {"day": 5, "breakfast": "Ragi dosa + curd", "lunch": "Rice + moong dal + grilled chicken", "snacks": "Sprouts chaat", "dinner": "Fish stew + rice"}
+        ]
+    else:  # elderly
+        return [
+            {"day": 1, "breakfast": "Soft boiled egg + oats", "lunch": "Soft rice + dal + boiled fish", "snacks": "Fruit puree", "dinner": "Soup + khichdi"},
+            {"day": 2, "breakfast": "Daliya + milk", "lunch": "Khichdi + curd", "snacks": "Herbal tea", "dinner": "Daliya + boiled egg"},
+            {"day": 3, "breakfast": "Poha (soft)", "lunch": "Roti + egg curry", "snacks": "Coconut water", "dinner": "Soft rice + dal"},
+            {"day": 4, "breakfast": "Ragi porridge", "lunch": "Rice + vegetable stew", "snacks": "Milk + biscuit", "dinner": "Oats + milk"},
+            {"day": 5, "breakfast": "Fruit + toast", "lunch": "Moong soup + rice", "snacks": "Steamed banana", "dinner": "Soup + toast"}
+        ]
 
 # Additional Routes for Patient Welcome Page
 @app.route('/patient/form')
@@ -1694,6 +1739,8 @@ if __name__ == '__main__':
     print("📍 Doctor Portal:  http://127.0.0.1:5000/doctor/welcome")
     print("📍 Doctor Login: http://127.0.0.1:5000/doctor/login")
     print("📍 Animal Health: http://127.0.0.1:5000/animal/health")
+    print("📍 Animal History: http://127.0.0.1:5000/animal/history")
+    print("📍 Animal Search: http://127.0.0.1:5000/animal/search")
     print("📍 Veterinarian Dashboard: http://127.0.0.1:5000/veterinarian/dashboard")
     print("📍 Balance Diet: http://127.0.0.1:5000/balance_diet")
     print("📍 Patient Chat: http://127.0.0.1:5000/patient/chat")

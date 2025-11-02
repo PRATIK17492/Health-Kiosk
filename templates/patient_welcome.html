@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
@@ -41,6 +41,10 @@
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.02); }
         }
+        
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-green-50 to-teal-50 min-h-screen flex items-center justify-center p-4">
@@ -58,52 +62,112 @@
         <p class="text-gray-600 mb-2 fade-in" style="animation-delay: 0.1s;">Welcome to Health Kiosk</p>
         <p class="text-gray-500 text-sm mb-8 fade-in" style="animation-delay: 0.2s;">Complete your health form and get instant prescription</p>
         
-        <div class="space-y-4">
-            <!-- Health Assessment -->
-            <a href="/patient/form" class="block bg-green-600 text-white py-4 rounded-xl font-bold text-lg btn-hover hover:bg-green-700 transition duration-300 fade-in" style="animation-delay: 0.3s;">
-                <i class="fas fa-heartbeat mr-2"></i>Health Assessment
+        <!-- Main Selection Buttons -->
+        <div id="main-buttons" class="space-y-4">
+            <!-- Patient Button -->
+            <button onclick="showPatientOptions()" class="w-full bg-green-600 text-white py-4 rounded-xl font-bold text-lg btn-hover hover:bg-green-700 transition duration-300 fade-in" style="animation-delay: 0.3s;">
+                <i class="fas fa-user mr-2"></i>Patient
+            </button>
+            
+            <!-- Animal Button -->
+            <button onclick="showAnimalOptions()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold text-lg btn-hover hover:bg-blue-700 transition duration-300 fade-in" style="animation-delay: 0.4s;">
+                <i class="fas fa-paw mr-2"></i>Animal
+            </button>
+
+            <!-- Language Selector -->
+            <div class="mt-6 flex justify-center space-x-2 fade-in" style="animation-delay: 0.9s;">
+                <a href="/set_language/en" class="bg-gray-100 px-3 py-1 rounded-lg text-gray-700 text-sm hover:bg-gray-200 transition duration-300">
+                    English
+                </a>
+                <a href="/set_language/hi" class="bg-gray-100 px-3 py-1 rounded-lg text-gray-700 text-sm hover:bg-gray-200 transition duration-300">
+                    हिंदी
+                </a>
+                <a href="/set_language/kn" class="bg-gray-100 px-3 py-1 rounded-lg text-gray-700 text-sm hover:bg-gray-200 transition duration-300">
+                    ಕನ್ನಡ
+                </a>
+            </div>
+
+            <p class="text-gray-400 text-xs mt-6 fade-in" style="animation-delay: 1s;">
+                <i class="fas fa-heart mr-1"></i>Your Health is Our Priority
+            </p>
+        </div>
+
+        <!-- Patient Options -->
+        <div id="patient-options" class="space-y-4 hidden">
+            <!-- Back Button -->
+            <button onclick="showMainButtons()" class="w-full bg-gray-500 text-white py-3 rounded-xl font-bold text-lg btn-hover hover:bg-gray-600 transition duration-300">
+                <i class="fas fa-arrow-left mr-2"></i>Back
+            </button>
+            
+            <!-- Start the Form -->
+            <a href="/patient" class="block bg-green-600 text-white py-4 rounded-xl font-bold text-lg btn-hover hover:bg-green-700 transition duration-300">
+                <i class="fas fa-file-medical mr-2"></i>Start the Form
             </a>
             
-            <!-- Animal Health -->
-            <a href="/animal/form" class="block bg-blue-600 text-white py-4 rounded-xl font-bold text-lg btn-hover hover:bg-blue-700 transition duration-300 fade-in" style="animation-delay: 0.4s;">
-                <i class="fas fa-paw mr-2"></i>Animal Health
+            <!-- My Records -->
+            <a href="/patient/history" class="block bg-purple-600 text-white py-4 rounded-xl font-bold text-lg btn-hover hover:bg-purple-700 transition duration-300">
+                <i class="fas fa-history mr-2"></i>My Records
             </a>
 
-            <!-- View History -->
-            <a href="/patient/history" class="block bg-purple-600 text-white py-4 rounded-xl font-bold text-lg btn-hover hover:bg-purple-700 transition duration-300 fade-in" style="animation-delay: 0.5s;">
-                <i class="fas fa-history mr-2"></i>View History
+            <!-- Search the History -->
+            <a href="/patient/search" class="block bg-indigo-600 text-white py-4 rounded-xl font-bold text-lg btn-hover hover:bg-indigo-700 transition duration-300">
+                <i class="fas fa-search mr-2"></i>Search the History
             </a>
 
             <!-- Chat with Doctor -->
-            <a href="/patient/chat" class="block bg-teal-600 text-white py-4 rounded-xl font-bold text-lg btn-hover hover:bg-teal-700 transition duration-300 fade-in" style="animation-delay: 0.7s;">
+            <a href="/patient/chat" class="block bg-teal-600 text-white py-4 rounded-xl font-bold text-lg btn-hover hover:bg-teal-700 transition duration-300">
                 <i class="fas fa-comments mr-2"></i>Chat with Doctor
             </a>
+        </div>
 
-            <!-- Emergency SOS -->
-            <button onclick="triggerEmergency()" class="block w-full bg-red-600 text-white py-4 rounded-xl font-bold text-lg btn-hover hover:bg-red-700 transition duration-300 fade-in" style="animation-delay: 0.8s;">
-                <i class="fas fa-ambulance mr-2"></i>Emergency SOS
+        <!-- Animal Options -->
+        <div id="animal-options" class="space-y-4 hidden">
+            <!-- Back Button -->
+            <button onclick="showMainButtons()" class="w-full bg-gray-500 text-white py-3 rounded-xl font-bold text-lg btn-hover hover:bg-gray-600 transition duration-300">
+                <i class="fas fa-arrow-left mr-2"></i>Back
             </button>
-        </div>
+            
+            <!-- Start the Form -->
+            <a href="/animal/health" class="block bg-green-600 text-white py-4 rounded-xl font-bold text-lg btn-hover hover:bg-green-700 transition duration-300">
+                <i class="fas fa-file-medical mr-2"></i>Start the Form
+            </a>
+            
+            <!-- My Records -->
+            <a href="/animal/history" class="block bg-purple-600 text-white py-4 rounded-xl font-bold text-lg btn-hover hover:bg-purple-700 transition duration-300">
+                <i class="fas fa-history mr-2"></i>My Records
+            </a>
 
-        <!-- Language Selector -->
-        <div class="mt-6 flex justify-center space-x-2 fade-in" style="animation-delay: 0.9s;">
-            <a href="/set_language/en" class="bg-gray-100 px-3 py-1 rounded-lg text-gray-700 text-sm hover:bg-gray-200 transition duration-300">
-                English
+            <!-- Search the History -->
+            <a href="/animal/search" class="block bg-indigo-600 text-white py-4 rounded-xl font-bold text-lg btn-hover hover:bg-indigo-700 transition duration-300">
+                <i class="fas fa-search mr-2"></i>Search the History
             </a>
-            <a href="/set_language/hi" class="bg-gray-100 px-3 py-1 rounded-lg text-gray-700 text-sm hover:bg-gray-200 transition duration-300">
-                हिंदी
-            </a>
-            <a href="/set_language/kn" class="bg-gray-100 px-3 py-1 rounded-lg text-gray-700 text-sm hover:bg-gray-200 transition duration-300">
-                ಕನ್ನಡ
+
+            <!-- Chat with Doctor -->
+            <a href="/animal/chat" class="block bg-teal-600 text-white py-4 rounded-xl font-bold text-lg btn-hover hover:bg-teal-700 transition duration-300">
+                <i class="fas fa-comments mr-2"></i>Chat with Doctor
             </a>
         </div>
-
-        <p class="text-gray-400 text-xs mt-6 fade-in" style="animation-delay: 1s;">
-            <i class="fas fa-heart mr-1"></i>Your Health is Our Priority
-        </p>
     </div>
 
     <script>
+        function showMainButtons() {
+            document.getElementById('main-buttons').classList.remove('hidden');
+            document.getElementById('patient-options').classList.add('hidden');
+            document.getElementById('animal-options').classList.add('hidden');
+        }
+
+        function showPatientOptions() {
+            document.getElementById('main-buttons').classList.add('hidden');
+            document.getElementById('patient-options').classList.remove('hidden');
+            document.getElementById('animal-options').classList.add('hidden');
+        }
+
+        function showAnimalOptions() {
+            document.getElementById('main-buttons').classList.add('hidden');
+            document.getElementById('patient-options').classList.add('hidden');
+            document.getElementById('animal-options').classList.remove('hidden');
+        }
+
         function triggerEmergency() {
             if (confirm('Are you sure you want to trigger emergency alert? Help will be notified immediately.')) {
                 fetch('/api/patient/emergency', {

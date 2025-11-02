@@ -3,169 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Animal Patient Details</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .card {
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            border: none;
-        }
-        .header-bg {
-            background: linear-gradient(45deg, #28a745, #20c997);
-            color: white;
-            border-radius: 15px 15px 0 0;
-        }
-        .btn-prescribe {
-            background: linear-gradient(45deg, #28a745, #20c997);
-            color: white;
-            border: none;
-        }
-        .btn-prescribe:hover {
-            background: linear-gradient(45deg, #218838, #1e9e8a);
-            color: white;
-        }
-        .symptoms-box {
-            background: #f8f9fa;
-            border-left: 4px solid #dc3545;
-            padding: 15px;
-            border-radius: 5px;
-        }
-    </style>
+    <title>Animal Patient - Veterinary Kiosk</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body>
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-10">
-                <div class="card">
-                    <div class="card-header header-bg text-center">
-                        <h3 class="mb-0">🐾 Animal Patient Details</h3>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen">
+    <nav class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-4 shadow-lg">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-paw text-2xl"></i>
+                <h1 class="text-xl font-bold">Animal Patient Details</h1>
+            </div>
+            <a href="/veterinarian/dashboard" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition">
+                <i class="fas fa-arrow-left mr-1"></i>Back to Dashboard
+            </a>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto p-6">
+        {% if animal_data %}
+        <div class="bg-white p-8 rounded-2xl shadow-xl border border-blue-100">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 flex items-center">
+                    <i class="fas fa-paw text-blue-500 mr-3"></i>
+                    Animal: {{ animal_data.animal_name }}
+                </h2>
+                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                    ID: {{ animal_data.animal_id }}
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h3 class="font-semibold text-blue-800 mb-3 flex items-center">
+                        <i class="fas fa-info-circle mr-2"></i>Animal Information
+                    </h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Name:</span>
+                            <span class="font-medium">{{ animal_data.animal_name }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Type:</span>
+                            <span class="font-medium">{{ animal_data.animal_type }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Age:</span>
+                            <span class="font-medium">{{ animal_data.age }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Weight:</span>
+                            <span class="font-medium">{{ animal_data.weight }} kg</span>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        {% if animal_data %}
-                            <!-- Animal Information -->
-                            <div class="row mb-4">
-                                <div class="col-md-6">
-                                    <h5>Animal Information</h5>
-                                    <table class="table table-bordered">
-                                        <tr>
-                                            <th>Animal ID:</th>
-                                            <td>{{ animal_data.animal_id }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Animal Name:</th>
-                                            <td>{{ animal_data.animal_name }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Animal Type:</th>
-                                            <td>{{ animal_data.animal_type }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Age:</th>
-                                            <td>{{ animal_data.age }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Weight:</th>
-                                            <td>{{ animal_data.weight }} kg</td>
-                                        </tr>
-                                    </table>
-                                </div>
-                                <div class="col-md-6">
-                                    <h5>Owner Information</h5>
-                                    <table class="table table-bordered">
-                                        <tr>
-                                            <th>Owner Name:</th>
-                                            <td>{{ animal_data.owner_name }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Village:</th>
-                                            <td>{{ animal_data.village }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Contact:</th>
-                                            <td>{{ animal_data.contact or 'Not provided' }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Submission Date:</th>
-                                            <td>{{ animal_data.submission_date }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Status:</th>
-                                            <td>
-                                                <span class="badge {% if animal_data.status == 'prescribed' %}bg-success{% else %}bg-warning{% endif %}">
-                                                    {{ animal_data.status|title }}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </div>
-                            </div>
+                </div>
 
-                            <!-- Symptoms -->
-                            <div class="row mb-4">
-                                <div class="col-12">
-                                    <h5>Reported Symptoms</h5>
-                                    <div class="symptoms-box">
-                                        {{ animal_data.symptoms }}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Prescription Form -->
-                            <div class="row">
-                                <div class="col-12">
-                                    <h5>Write Prescription</h5>
-                                    {% if error %}
-                                    <div class="alert alert-danger">
-                                        {{ error }}
-                                    </div>
-                                    {% endif %}
-                                    
-                                    <form method="POST">
-                                        <div class="mb-3">
-                                            <label for="prescription" class="form-label">Prescription Details:</label>
-                                            <textarea class="form-control" id="prescription" name="prescription" 
-                                                      rows="8" placeholder="Enter detailed prescription including medications, dosage, instructions, and follow-up recommendations..." 
-                                                      required>{% if animal_data.prescription %}{{ animal_data.prescription.split('--- PRESCRIPTION ---')[-1] if '--- PRESCRIPTION ---' in animal_data.prescription else animal_data.prescription }}{% endif %}</textarea>
-                                        </div>
-                                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                            <a href="/veterinarian/dashboard" class="btn btn-secondary me-md-2">← Back to Dashboard</a>
-                                            <button type="submit" class="btn btn-prescribe">💊 Submit Prescription</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-
-                            <!-- Existing Prescription -->
-                            {% if animal_data.prescription %}
-                            <div class="row mt-4">
-                                <div class="col-12">
-                                    <h5>Current Prescription</h5>
-                                    <div class="alert alert-info">
-                                        <pre style="white-space: pre-wrap; font-family: inherit;">{{ animal_data.prescription }}</pre>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endif %}
-
-                        {% else %}
-                            <div class="alert alert-danger text-center">
-                                <h4>❌ Animal Patient Not Found</h4>
-                                <p>The requested animal patient record could not be found.</p>
-                                <a href="/veterinarian/dashboard" class="btn btn-secondary">← Back to Dashboard</a>
-                            </div>
-                        {% endif %}
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <h3 class="font-semibold text-green-800 mb-3 flex items-center">
+                        <i class="fas fa-user mr-2"></i>Owner Information
+                    </h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Owner Name:</span>
+                            <span class="font-medium">{{ animal_data.owner_name }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Village:</span>
+                            <span class="font-medium">{{ animal_data.village }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Contact:</span>
+                            <span class="font-medium">{{ animal_data.contact or 'Not provided' }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Status:</span>
+                            <span class="font-medium">
+                                <span class="{% if animal_data.status == 'prescribed' %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %} px-2 py-1 rounded-full text-xs">
+                                    {{ animal_data.status|title }}
+                                </span>
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+            <div class="mb-6">
+                <h3 class="font-semibold text-gray-800 mb-2 flex items-center">
+                    <i class="fas fa-stethoscope text-orange-500 mr-2"></i>Reported Symptoms
+                </h3>
+                <div class="bg-orange-50 p-4 rounded-lg border-l-4 border-orange-400">
+                    <p class="text-gray-700">{{ animal_data.symptoms }}</p>
+                </div>
+            </div>
+
+            {% if animal_data.prescription %}
+            <div class="mb-6">
+                <h3 class="font-semibold text-gray-800 mb-2 flex items-center">
+                    <i class="fas fa-file-medical text-purple-500 mr-2"></i>Current Prescription
+                </h3>
+                <div class="bg-purple-50 p-4 rounded-lg border-l-4 border-purple-400">
+                    <pre class="text-gray-700 whitespace-pre-wrap">{{ animal_data.prescription }}</pre>
+                </div>
+            </div>
+            {% endif %}
+
+            <form method="POST">
+                <div class="mb-4">
+                    <label class="block text-lg font-semibold text-gray-700 mb-3 flex items-center">
+                        <i class="fas fa-prescription text-purple-500 mr-2"></i>Write Prescription
+                    </label>
+                    {% if error %}
+                    <div class="bg-red-50 text-red-700 p-3 rounded-lg mb-4 border-l-4 border-red-500">
+                        {{ error }}
+                    </div>
+                    {% endif %}
+                    <textarea name="prescription" rows="8" 
+                              placeholder="Enter detailed prescription including medications, dosage, instructions, and follow-up recommendations..."
+                              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition text-lg">{% if animal_data.prescription %}{{ animal_data.prescription.split('--- PRESCRIPTION ---')[-1] if '--- PRESCRIPTION ---' in animal_data.prescription else animal_data.prescription }}{% endif %}</textarea>
+                </div>
+                
+                <div class="flex space-x-4">
+                    <button type="submit" class="bg-gradient-to-r from-green-500 to-teal-500 text-white px-6 py-3 rounded-lg font-bold text-lg hover:from-green-600 hover:to-teal-600 transition duration-300 shadow-lg">
+                        <i class="fas fa-save mr-2"></i>Submit Prescription
+                    </button>
+                    <a href="/veterinarian/dashboard" class="bg-gray-500 text-white px-6 py-3 rounded-lg font-bold text-lg hover:bg-gray-600 transition">
+                        <i class="fas fa-times mr-2"></i>Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+        {% else %}
+        <div class="bg-white p-8 rounded-2xl shadow-xl border border-blue-100 text-center">
+            <div class="text-red-500 text-6xl mb-4">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Animal Patient Not Found</h2>
+            <p class="text-gray-600 mb-6">The requested animal patient record could not be found.</p>
+            <a href="/veterinarian/dashboard" class="bg-blue-500 text-white px-6 py-3 rounded-lg font-bold text-lg hover:bg-blue-600 transition">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+            </a>
+        </div>
+        {% endif %}
+    </div>
 </body>
 </html>

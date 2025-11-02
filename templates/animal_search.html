@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Search Animal - Health Kiosk</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <nav class="bg-blue-600 text-white px-6 py-4">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-search text-2xl"></i>
+                <h1 class="text-xl font-bold">Search Animal Records</h1>
+            </div>
+            <div class="flex space-x-2">
+                <a href="/animal/history" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition">
+                    <i class="fas fa-history mr-1"></i>History
+                </a>
+                <a href="/patient/welcome" class="bg-green-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-600 transition">
+                    <i class="fas fa-home mr-1"></i>Home
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto p-6">
+        <!-- Search Form -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Search Animal by ID, Name or Owner</h2>
+            <form method="POST" class="flex gap-4">
+                <div class="flex-1">
+                    <input type="text" name="animal_id" value="{{ search_query }}" 
+                           placeholder="Enter Animal ID, Name or Owner..." 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+                    <i class="fas fa-search mr-2"></i>Search
+                </button>
+            </form>
+        </div>
+
+        <!-- Search Results -->
+        {% if search_query %}
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">
+                Search Results for "{{ search_query }}"
+            </h3>
+
+            {% if animals %}
+            <div class="space-y-4">
+                {% for animal_id, animal_data in animals.items() %}
+                <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">{{ animal_data.animal_name }} ({{ animal_data.animal_type }})</h4>
+                            <p class="text-sm text-gray-600">ID: <span class="font-mono bg-gray-100 px-2 py-1 rounded">{{ animal_id }}</span></p>
+                            <p class="text-sm text-gray-600">Owner: {{ animal_data.owner_name }} | Village: {{ animal_data.village }}</p>
+                            <p class="text-sm text-gray-600">Submitted: {{ animal_data.submission_date }}</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="{% if animal_data.status == 'prescribed' %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %} px-3 py-1 rounded-full text-sm font-medium">
+                                {% if animal_data.status == 'prescribed' %}
+                                Prescribed
+                                {% else %}
+                                Waiting
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3 flex space-x-3">
+                        <a href="/animal/view/{{ animal_id }}" class="text-blue-600 hover:text-blue-800 font-medium">
+                            <i class="fas fa-eye mr-1"></i>View Details
+                        </a>
+                        {% if animal_data.status == 'prescribed' %}
+                        <span class="text-green-600 font-medium">
+                            <i class="fas fa-file-medical mr-1"></i>Prescription Ready
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <i class="fas fa-search text-4xl text-gray-300 mb-4"></i>
+                <h4 class="text-lg font-semibold text-gray-600">No animals found</h4>
+                <p class="text-gray-500">Try a different search term</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

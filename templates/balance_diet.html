@@ -4,211 +4,216 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Balance Diet - Health Kiosk</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
+        .circular-logo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
         }
-        .card {
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            border: none;
+        
+        .btn-hover {
+            transition: all 0.3s ease;
         }
-        .header-bg {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-            color: white;
-            border-radius: 15px 15px 0 0;
+        
+        .btn-hover:hover {
+            transform: translateY(-2px);
         }
-        .btn-diet {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            font-size: 1.1em;
-            border-radius: 10px;
+        
+        .fade-in {
+            animation: fadeIn 0.8s ease-in;
         }
-        .btn-diet:hover {
-            background: linear-gradient(45deg, #ff5252, #e74c3c);
-            color: white;
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
+        
+        .pulse-slow {
+            animation: pulse 3s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        
         .step {
             display: none;
         }
+        
         .step.active {
             display: block;
         }
-        .nav-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 2rem;
+        
+        .diet-card {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .diet-card:hover {
+            border-color: #10B981;
+            transform: translateY(-2px);
+        }
+        
+        .diet-card.selected {
+            border-color: #10B981;
+            background-color: #ECFDF5;
+        }
+        
+        .btn-check:checked + .diet-card {
+            border-color: #10B981;
+            background-color: #ECFDF5;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card">
-                    <div class="card-header header-bg text-center">
-                        <h3 class="mb-0"><i class="fas fa-utensils me-2"></i>Balance Diet Planner</h3>
+<body class="bg-gradient-to-br from-green-50 to-teal-50 min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-4xl bg-white p-8 rounded-3xl shadow-2xl border border-green-200 text-center pulse-slow">
+        <!-- Circular Logo -->
+        <div class="flex justify-center mb-6">
+            <div class="bg-green-100 p-2 rounded-full">
+                <img src="{{ url_for('static', filename='logo.jpg') }}" 
+                     alt="Health Kiosk Logo" 
+                     class="circular-logo">
+            </div>
+        </div>
+        
+        <h1 class="text-3xl font-bold text-green-800 mb-2 fade-in">BALANCE DIET PLANNER</h1>
+        <p class="text-gray-600 mb-2 fade-in" style="animation-delay: 0.1s;">Get Your Personalized 5-Day Diet Plan</p>
+        <p class="text-gray-500 text-sm mb-8 fade-in" style="animation-delay: 0.2s;">Complete the steps below to generate your customized diet plan</p>
+
+        {% if error %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6 fade-in">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST" action="/balance_diet/generate" id="dietForm" class="text-left">
+            <!-- Step 1: Diet Type -->
+            <div class="step active fade-in" id="step1">
+                <h3 class="text-2xl font-bold text-green-800 mb-6 text-center">Step 1: Select Your Diet Type</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <input type="radio" name="diet_type" value="vegetarian" id="vegetarian" class="hidden" required>
+                    <label for="vegetarian" class="diet-card cursor-pointer bg-white rounded-xl p-6 text-center border-2 border-gray-200">
+                        <i class="fas fa-leaf fa-3x text-green-500 mb-4"></i>
+                        <h4 class="font-bold text-gray-800 mb-2">Vegetarian</h4>
+                        <p class="text-gray-600 text-sm">Plant-based healthy diet</p>
+                    </label>
+
+                    <input type="radio" name="diet_type" value="eggitarian" id="eggitarian" class="hidden" required>
+                    <label for="eggitarian" class="diet-card cursor-pointer bg-white rounded-xl p-6 text-center border-2 border-gray-200">
+                        <i class="fas fa-egg fa-3x text-yellow-500 mb-4"></i>
+                        <h4 class="font-bold text-gray-800 mb-2">Eggitarian</h4>
+                        <p class="text-gray-600 text-sm">Vegetarian + Eggs</p>
+                    </label>
+
+                    <input type="radio" name="diet_type" value="non_vegetarian" id="non_vegetarian" class="hidden" required>
+                    <label for="non_vegetarian" class="diet-card cursor-pointer bg-white rounded-xl p-6 text-center border-2 border-gray-200">
+                        <i class="fas fa-drumstick-bite fa-3x text-red-500 mb-4"></i>
+                        <h4 class="font-bold text-gray-800 mb-2">Non-Vegetarian</h4>
+                        <p class="text-gray-600 text-sm">Includes all food types</p>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Step 2: Occupation -->
+            <div class="step fade-in" id="step2">
+                <h3 class="text-2xl font-bold text-green-800 mb-6 text-center">Step 2: Select Your Occupation</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                    <input type="radio" name="occupation" value="school" id="school" class="hidden" required>
+                    <label for="school" class="diet-card cursor-pointer bg-white rounded-xl p-6 text-center border-2 border-gray-200">
+                        <i class="fas fa-graduation-cap fa-3x text-blue-500 mb-4"></i>
+                        <h4 class="font-bold text-gray-800 mb-2">School</h4>
+                        <p class="text-gray-600 text-sm">Age 7-16 years</p>
+                    </label>
+
+                    <input type="radio" name="occupation" value="college" id="college" class="hidden" required>
+                    <label for="college" class="diet-card cursor-pointer bg-white rounded-xl p-6 text-center border-2 border-gray-200">
+                        <i class="fas fa-university fa-3x text-indigo-500 mb-4"></i>
+                        <h4 class="font-bold text-gray-800 mb-2">College</h4>
+                        <p class="text-gray-600 text-sm">Age 17-25 years</p>
+                    </label>
+
+                    <input type="radio" name="occupation" value="job" id="job" class="hidden" required>
+                    <label for="job" class="diet-card cursor-pointer bg-white rounded-xl p-6 text-center border-2 border-gray-200">
+                        <i class="fas fa-briefcase fa-3x text-green-500 mb-4"></i>
+                        <h4 class="font-bold text-gray-800 mb-2">Job</h4>
+                        <p class="text-gray-600 text-sm">Age 26-40 years</p>
+                    </label>
+
+                    <input type="radio" name="occupation" value="housewife" id="housewife" class="hidden" required>
+                    <label for="housewife" class="diet-card cursor-pointer bg-white rounded-xl p-6 text-center border-2 border-gray-200">
+                        <i class="fas fa-home fa-3x text-yellow-500 mb-4"></i>
+                        <h4 class="font-bold text-gray-800 mb-2">Housewife</h4>
+                        <p class="text-gray-600 text-sm">Age 41-60 years</p>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Step 3: Personal Details -->
+            <div class="step fade-in" id="step3">
+                <h3 class="text-2xl font-bold text-green-800 mb-6 text-center">Step 3: Personal Details</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">Age *</label>
+                        <input type="number" name="age" required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                               placeholder="Enter your age">
                     </div>
-                    <div class="card-body">
-                        {% if error %}
-                        <div class="alert alert-danger">
-                            {{ error }}
-                        </div>
-                        {% endif %}
-
-                        <form method="POST" action="/balance_diet/generate" id="dietForm">
-                            <!-- Step 1: Diet Type -->
-                            <div class="step active" id="step1">
-                                <h4 class="text-center mb-4">Step 1: Select Your Diet Type</h4>
-                                <div class="row">
-                                    <div class="col-md-4 mb-3">
-                                        <div class="card text-center h-100">
-                                            <div class="card-body">
-                                                <i class="fas fa-leaf fa-3x text-success mb-3"></i>
-                                                <h5>Vegetarian</h5>
-                                                <p class="text-muted">Plant-based diet</p>
-                                                <input type="radio" class="btn-check" name="diet_type" value="vegetarian" id="vegetarian" required>
-                                                <label class="btn btn-outline-success w-100" for="vegetarian">Select</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        <div class="card text-center h-100">
-                                            <div class="card-body">
-                                                <i class="fas fa-egg fa-3x text-warning mb-3"></i>
-                                                <h5>Eggitarian</h5>
-                                                <p class="text-muted">Vegetarian + Eggs</p>
-                                                <input type="radio" class="btn-check" name="diet_type" value="eggitarian" id="eggitarian" required>
-                                                <label class="btn btn-outline-warning w-100" for="eggitarian">Select</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        <div class="card text-center h-100">
-                                            <div class="card-body">
-                                                <i class="fas fa-drumstick-bite fa-3x text-danger mb-3"></i>
-                                                <h5>Non-Vegetarian</h5>
-                                                <p class="text-muted">Includes all food types</p>
-                                                <input type="radio" class="btn-check" name="diet_type" value="non_vegetarian" id="non_vegetarian" required>
-                                                <label class="btn btn-outline-danger w-100" for="non_vegetarian">Select</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Step 2: Occupation -->
-                            <div class="step" id="step2">
-                                <h4 class="text-center mb-4">Step 2: Select Your Occupation</h4>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <div class="card text-center h-100">
-                                            <div class="card-body">
-                                                <i class="fas fa-graduation-cap fa-3x text-primary mb-3"></i>
-                                                <h5>School</h5>
-                                                <p class="text-muted">Student</p>
-                                                <input type="radio" class="btn-check" name="occupation" value="school" id="school" required>
-                                                <label class="btn btn-outline-primary w-100" for="school">Select</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <div class="card text-center h-100">
-                                            <div class="card-body">
-                                                <i class="fas fa-university fa-3x text-info mb-3"></i>
-                                                <h5>College</h5>
-                                                <p class="text-muted">College Student</p>
-                                                <input type="radio" class="btn-check" name="occupation" value="college" id="college" required>
-                                                <label class="btn btn-outline-info w-100" for="college">Select</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <div class="card text-center h-100">
-                                            <div class="card-body">
-                                                <i class="fas fa-briefcase fa-3x text-success mb-3"></i>
-                                                <h5>Job</h5>
-                                                <p class="text-muted">Working Professional</p>
-                                                <input type="radio" class="btn-check" name="occupation" value="job" id="job" required>
-                                                <label class="btn btn-outline-success w-100" for="job">Select</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <div class="card text-center h-100">
-                                            <div class="card-body">
-                                                <i class="fas fa-home fa-3x text-warning mb-3"></i>
-                                                <h5>Housewife</h5>
-                                                <p class="text-muted">Homemaker</p>
-                                                <input type="radio" class="btn-check" name="occupation" value="housewife" id="housewife" required>
-                                                <label class="btn btn-outline-warning w-100" for="housewife">Select</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Step 3: Personal Details -->
-                            <div class="step" id="step3">
-                                <h4 class="text-center mb-4">Step 3: Personal Details</h4>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">Age *</label>
-                                        <input type="number" class="form-control" name="age" required>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">Weight (kg) *</label>
-                                        <input type="number" class="form-control" name="weight" step="0.1" required>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Step 4: Health Conditions -->
-                            <div class="step" id="step4">
-                                <h4 class="text-center mb-4">Step 4: Health Conditions</h4>
-                                <div class="row">
-                                    <div class="col-12 mb-3">
-                                        <label class="form-label">Do you have any medical condition? *</label>
-                                        <select class="form-control" name="disease" required>
-                                            <option value="">Select Condition</option>
-                                            <option value="no_disease">No Disease - Healthy</option>
-                                            <option value="diabetes">Diabetes</option>
-                                            <option value="blood_pressure">Blood Pressure</option>
-                                            <option value="thyroid">Thyroid</option>
-                                            <option value="cholesterol">Cholesterol</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Navigation Buttons -->
-                            <div class="nav-buttons">
-                                <button type="button" class="btn btn-secondary" id="prevBtn" onclick="prevStep()" style="display: none;">
-                                    <i class="fas fa-arrow-left me-2"></i>Previous
-                                </button>
-                                <button type="button" class="btn btn-primary" id="nextBtn" onclick="nextStep()">
-                                    Next <i class="fas fa-arrow-right ms-2"></i>
-                                </button>
-                                <button type="submit" class="btn btn-diet" id="submitBtn" style="display: none;">
-                                    <i class="fas fa-utensils me-2"></i>Generate Diet Plan
-                                </button>
-                            </div>
-                        </form>
-
-                        <div class="text-center mt-4">
-                            <a href="/patient/welcome" class="btn btn-outline-secondary">
-                                <i class="fas fa-home me-2"></i>Back to Home
-                            </a>
-                        </div>
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">Weight (kg) *</label>
+                        <input type="number" name="weight" step="0.1" required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                               placeholder="Enter your weight">
                     </div>
                 </div>
             </div>
+
+            <!-- Step 4: Health Conditions -->
+            <div class="step fade-in" id="step4">
+                <h3 class="text-2xl font-bold text-green-800 mb-6 text-center">Step 4: Health Conditions</h3>
+                <div class="mb-8">
+                    <label class="block text-gray-700 font-semibold mb-4">Do you have any medical condition? *</label>
+                    <select name="disease" required 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <option value="">Select Condition</option>
+                        <option value="no_disease">No Disease - Healthy</option>
+                        <option value="diabetes">Diabetes</option>
+                        <option value="blood_pressure">Blood Pressure</option>
+                        <option value="thyroid">Thyroid</option>
+                        <option value="cholesterol">Cholesterol</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="flex justify-between mt-8">
+                <button type="button" id="prevBtn" onclick="prevStep()" 
+                        class="bg-gray-500 text-white py-3 px-6 rounded-xl font-bold btn-hover hover:bg-gray-600 transition duration-300 hidden">
+                    <i class="fas fa-arrow-left mr-2"></i>Previous
+                </button>
+                
+                <button type="button" id="nextBtn" onclick="nextStep()" 
+                        class="bg-green-600 text-white py-3 px-6 rounded-xl font-bold btn-hover hover:bg-green-700 transition duration-300 ml-auto">
+                    Next <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+                
+                <button type="submit" id="submitBtn" 
+                        class="bg-blue-600 text-white py-3 px-6 rounded-xl font-bold btn-hover hover:bg-blue-700 transition duration-300 hidden">
+                    <i class="fas fa-utensils mr-2"></i>Generate Diet Plan
+                </button>
+            </div>
+        </form>
+
+        <!-- Back to Home -->
+        <div class="mt-8 pt-6 border-t border-gray-200">
+            <a href="/patient/welcome" class="inline-block bg-gray-500 text-white py-2 px-6 rounded-lg font-medium btn-hover hover:bg-gray-600 transition duration-300">
+                <i class="fas fa-home mr-2"></i>Back to Home
+            </a>
         </div>
     </div>
 
@@ -223,15 +228,18 @@
             document.getElementById(`step${step}`).classList.add('active');
             
             // Update navigation buttons
-            document.getElementById('prevBtn').style.display = step === 1 ? 'none' : 'block';
-            document.getElementById('nextBtn').style.display = step === totalSteps ? 'none' : 'block';
-            document.getElementById('submitBtn').style.display = step === totalSteps ? 'block' : 'none';
+            document.getElementById('prevBtn').classList.toggle('hidden', step === 1);
+            document.getElementById('nextBtn').classList.toggle('hidden', step === totalSteps);
+            document.getElementById('submitBtn').classList.toggle('hidden', step !== totalSteps);
         }
 
         function nextStep() {
-            if (currentStep < totalSteps) {
-                currentStep++;
-                showStep(currentStep);
+            // Validate current step before proceeding
+            if (validateStep(currentStep)) {
+                if (currentStep < totalSteps) {
+                    currentStep++;
+                    showStep(currentStep);
+                }
             }
         }
 
@@ -242,10 +250,54 @@
             }
         }
 
+        function validateStep(step) {
+            if (step === 1) {
+                const dietSelected = document.querySelector('input[name="diet_type"]:checked');
+                if (!dietSelected) {
+                    alert('Please select a diet type');
+                    return false;
+                }
+            } else if (step === 2) {
+                const occupationSelected = document.querySelector('input[name="occupation"]:checked');
+                if (!occupationSelected) {
+                    alert('Please select your occupation');
+                    return false;
+                }
+            } else if (step === 3) {
+                const age = document.querySelector('input[name="age"]').value;
+                const weight = document.querySelector('input[name="weight"]').value;
+                if (!age || !weight) {
+                    alert('Please fill all personal details');
+                    return false;
+                }
+                if (age < 7 || age > 80) {
+                    alert('Age must be between 7 and 80 years');
+                    return false;
+                }
+            } else if (step === 4) {
+                const disease = document.querySelector('select[name="disease"]').value;
+                if (!disease) {
+                    alert('Please select a health condition');
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // Add selection styling to diet cards
+        document.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.querySelectorAll('.diet-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                if (this.checked) {
+                    this.nextElementSibling.classList.add('selected');
+                }
+            });
+        });
+
         // Initialize
         showStep(1);
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
